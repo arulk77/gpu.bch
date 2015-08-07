@@ -12,15 +12,20 @@
 #include <helper_functions.h>
 #include <helper_cuda.h>    
 
-// Include local definitions of the file
-#include <bch_def.h>
+// Include locally defined header file 
+#include <gf_defines.h>
+#include <bch_cuda_defines.h>
+#include <gf_func.cu>
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 
-/* This is the main function to do the bch decoder algorithm */
+
+/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+  This is the main function to do the bch decoder algorithm 
+  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 int main() {
-  int array_size = BLOCK_SIZE/sizeof(UINT);
+  int array_size = BLOCK_SIZE/sizeof(UINT)*8;
 
   /* Allocate memory for each block on the host end */
   UINTP h_block_data = (UINTP) malloc(array_size);
