@@ -1,5 +1,5 @@
 /* FOR 512 * 8 K bits the galois extension is 13 */
-#define GALOIS_FIELD_EXT 13
+#define GALOIS_FIELD_EXT 4
 #define M GALOIS_FIELD_EXT
 
 /* The number of error to be corrected is 16 */
@@ -21,12 +21,12 @@
 
 
 /*+++++++++++++++ Constants on the device ++++++++++++++++++++++++*/
-__constant__ UINT cs_gf_wind = (1<<M)-1 ;
-__constant__ UINT cs_prim_poly[] = {0x0,0x1,0x3,0xb,0x13,0x25,0x43,0x89,0x11d,0x211,0x409,0x805,0x1053,0x201d,0x4443,0x8003};
-__constant__ UINT cs_bch_min_poly[] = {0x1b,0x1b,0x6b1,0x1b,0x993,0x6b1,0x74f,0x1b};
+__constant__ UINT ccs_gf_wind = (1<<M)-1 ;
+__constant__ UINT ccs_prim_poly[] = {0x0,0x1,0x3,0xb,0x13,0x25,0x43,0x89,0x11d,0x211,0x409,0x805,0x1053,0x201d,0x4443,0x8003};
+__constant__ UINT ccs_bch_min_poly[] = {0x1b,0x1b,0x6b1,0x1b,0x993,0x6b1,0x74f,0x1b};
 
 /*+++++++++++++++ Global variables for cuda  ++++++++++++++++++++++++*/
 
 //__device__ UINT gb_gf_ext[1<<M];
-UINT gf_ext[1<<M];
-UINT gf_log_table[1<<M];
+__device__ UINT cg_gf_ext[1<<M];
+__device__ UINT cg_gf_log_table[1<<M];
