@@ -23,6 +23,11 @@
 #include <gf_defines.h>
 //#include <gf_func.cu>
 
+#define CUDA_CHECK_ERR(err) \
+  if(err != cudaSuccess) { \
+	 fprintf(stderr,"Got error on Cuda: (%s)\n",cudaGetErrorString(err)); \
+    exit(EXIT_FAILURE); \
+}
 
 __global__ void cuda_gf_init(UINTP d_pg_data, UINTP d_pg_corr_data) {
   int pos = threadIdx.x;
@@ -30,8 +35,6 @@ __global__ void cuda_gf_init(UINTP d_pg_data, UINTP d_pg_corr_data) {
   //  d_pg_corr_data[pos] = d_pg_data[pos];
   d_pg_corr_data[0] = 10; 
   d_pg_corr_data[1] = 10; 
-
-
 }
 
 int main() {
@@ -49,29 +52,22 @@ int main() {
    h_pg_corr_data[i] = test[i] = i*2;
   }
 
-  UINTP d_pg_data; err = cudaMalloc((void **)&d_pg_data,pg_size);
-  if(err != cudaSuccess) {
-	 fprintf(stderr,"Failed to allocate memory for d_pg_data (err code %s)\n",cudaGetErrorString(err));
-    exit(EXIT_FAILURE);
-  }
+  UINTP d_pg_data; 
+  err = cudaMalloc((void **)&d_pg_data,pg_size); CUDA_CHECK_ERR(err);
 
-  UINTP d_pg_corr_data; err = cudaMalloc((void **)&d_pg_corr_data,pg_size);
+  UINTP d_pg_corr_data; 
+  err = cudaMalloc((void **)&d_pg_corr_data,pg_size); CUDA_CHECK_ERR(err);
 
   err = cudaMemcpy(d_pg_data, h_pg_data, pg_size, cudaMemcpyHostToDevice);
-  if(err != cudaSuccess) {
-	 fprintf(stderr,"Failed to copy device to host (err code %s)\n",cudaGetErrorString(err));
-    exit(EXIT_FAILURE);
-  }
+  CUDA_CHECK_ERR(err);
 
   //  cuda_gf_init<<<1,pg_size_dw>>>(d_pg_data,d_pg_corr_data);
   cuda_gf_init<<<1,1>>>(d_pg_data,d_pg_corr_data);
   err = cudaGetLastError();
+  CUDA_CHECK_ERR(err);
 
   err = cudaMemcpy(h_pg_corr_data, d_pg_corr_data, pg_size, cudaMemcpyDeviceToHost);
-  if(err != cudaSuccess) {
-	 fprintf(stderr,"Failed to copy device to host (err code %s)\n",cudaGetErrorString(err));
-    exit(EXIT_FAILURE);
-  }
+  CUDA_CHECK_ERR(err);
   
 
   for(i=0;i<pg_size_dw;i++){
@@ -80,6 +76,6 @@ int main() {
 	 printf("Host coming out test %03d is %f \n\n",i,test[i]);
   }
 
-
+  return 0;
   
 }
