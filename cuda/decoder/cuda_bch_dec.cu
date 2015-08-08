@@ -40,8 +40,8 @@ __global__ void cuda_gf_init();
   This is the main function to do the bch decoder algorithm 
   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 int main() {
-  int pg_size = (BLOCK_SIZE/8/sizeof(UINT))*NBLOCKS;
-  int pg_size_dw  = pg_size/4; 
+  int pg_size = (BLOCK_SIZE/8)*NBLOCKS;
+  int pg_size_dw  = pg_size/sizeof(UINT); 
   int i;
 
   /* Allocate memory for each block on the host end */
