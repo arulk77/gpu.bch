@@ -151,24 +151,26 @@ GENCODE_FLAGS   ?= $(GENCODE_SM50)
 
 ################################################################################
 
+FILE := cuda_bch_dec
+
 # Target rules
-all: build
+all: clean build run
 
-build: cuda_bch_dec
+build: $(FILE)
 
-cuda_bch_dec.o:cuda_bch_dec.cu
+$(FILE).o:$(FILE).cu
 	$(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-cuda_bch_dec: cuda_bch_dec.o
+$(FILE): $(FILE).o
 	$(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 	mkdir -p ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 	cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 
 run: build
-	./cuda_bch_dec
+	./$(FILE)
 
 clean:
-	rm -f cuda_bch_dec cuda_bch_dec.o
-	rm -rf ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/cuda_bch_dec
+	rm -f $(FILE) $(FILE).o
+	rm -rf ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))/$(FILE)
 
 clobber: clean
