@@ -30,23 +30,7 @@ __global__ void cuda_bch_syndrome(UINTP d_pg_data, UINTP d_corr_data){
   dw_data = d_pg_data[data_pos];
 }
 
-
-/* Subroutine to initialize the galois field element */
-__global__ void cuda_gf_init(){
-  UINT i,elem;
-
-  gb_gf_ext[0] = elem = 1;
-  gb_gf_log_table[1] = gb_gf_log_table[0] = 0;
-
-  for (i=1;i<(1<<M)-1;i++) {
-	 elem = elem << i;
-    if (elem >= (1<<M)) {
-      elem = (elem ^ cs_prim_poly[M]) & cs_gf_wind;
-    }
-	 gb_gf_ext[i] = elem;
-    gb_gf_log_table[elem] = i;
-  }
-}
+void gf_init();
 
 
 /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
@@ -54,17 +38,12 @@ __global__ void cuda_gf_init(){
   ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 int main() {
   int pg_size_dw = ceil(BLOCK_SIZE/8)/sizeof(UINT)*NBLOCKS;
+  int i;
 
   /* Allocate memory for each block on the host end */
   UINTP h_pg_data       = (UINTP) malloc(pg_size_dw);
   UINTP h_pg_corr_data  = (UINTP) malloc(pg_size_dw);
-  UINTP h_dw_bit_pos    = (UINTP) malloc(32);
-  UINTP h_dw_sft_pos    = (UINTP) malloc(32);
-
-  /* initialize the memory for the bit position and sft position */
-  int i;
-  for(i=0;i<32;i++){ h_dw_bit_pos[i] = int(1<<i);h_dw_sft_pos[i] = i;}
-
+  
   /* Alocate memory for the block on the GPU */
   UINTP d_pg_data;      cudaMalloc(&d_pg_data,pg_size_dw);
   UINTP d_pg_syndrome;  cudaMalloc(&d_pg_syndrome,2*T*NBLOCKS);
@@ -74,8 +53,8 @@ int main() {
   cudaMemcpy(d_pg_data, h_pg_data, pg_size_dw, cudaMemcpyHostToDevice);
 
   /* Initialize the table */
-  cuda_gf_init<<<1,1>>>(); // This is done only once
-
+  //  cuda_gf_init<<<1,1>>>(); // This is done only once
+  gf_init(); // This is done only once
 
   /* Invoke the kernel with a single thread */
   dim3 cuda_threads(1,2*T,pg_size_dw/NBLOCKS);
@@ -86,7 +65,40 @@ int main() {
   /* Once the computation is done, move the corrected data back to the host */
   cudaMemcpy(h_pg_corr_data, d_pg_corr_data, pg_size_dw, cudaMemcpyDeviceToHost);
 
-  printf("storage for the unsigned int is %d",sizeof(UINTP));
 
+  /* Print values on the host side */
+  //UINTP h_dbg = (UINTP) malloc(1<<M);
+  UINTP h_dbg;
+
+  //  cudaMemcpy(h_dbg, gb_gf_ext, (1<<M) , cudaMemcpyDeviceToHost); 
+  h_dbg = gf_ext;
+ 
+  for(i=0;i<(1<<M);i++){
+	 printf("GF element %03d is %08x \n",i,h_dbg[i]);
+  }
+
+  /* Free up the cuda memory */
+  cudaFree(d_pg_data);cudaFree(d_pg_syndrome);cudaFree(d_pg_corr_data);
+  
+}
+
+
+/* Subroutine to initialize the galois field element */
+//__global__ void cuda_gf_init(){
+void gf_init(){
+  UINT i,elem;
+
+  gf_ext[0] = elem = 1;
+  gf_log_table[1] = gf_log_table[0] = 0;
+
+  for (i=1;i<(1<<M)-1;i++) {
+	 elem = elem << 1;
+    if (elem >= (1<<M)) {
+		//      elem = (elem ^ cs_prim_poly[M]) & cs_gf_wind;
+      elem = (elem ^ 0x201d) & ((1<<M) -1);
+    }
+	 gf_ext[i] = elem;
+    gf_log_table[elem] = i;
+  }
 }
 
