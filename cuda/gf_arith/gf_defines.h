@@ -1,5 +1,5 @@
 /* FOR 512 * 8 K bits the galois extension is 13 */
-#define GALOIS_FIELD_EXT 13
+#define GALOIS_FIELD_EXT 13 
 #define M GALOIS_FIELD_EXT
 
 /* The number of error to be corrected is 16 */
@@ -29,3 +29,4 @@ CS_DEF UINT CS_MIN_POLY[]  = {0x1b,0x1b,0x6b1,0x1b,0x993,0x6b1,0x74f,0x1b};
 /*+++++++++++++++ Global variables for cuda  ++++++++++++++++++++++++*/
 VAR_DEF UINT gb_gf_ext[1<<M];
 VAR_DEF UINT gb_gf_log_table[1<<M];
+

@@ -43,7 +43,7 @@ int main() {
   UINTP d_pg_data;      CUDA_CHK_ERR(cudaMalloc(&d_pg_data,pg_size));
   UINTP d_pg_syndrome;  CUDA_CHK_ERR(cudaMalloc(&d_pg_syndrome,2*T*NBLOCKS));
   UINTP d_pg_corr_data; CUDA_CHK_ERR(cudaMalloc(&d_pg_corr_data, pg_size));
-
+   
   /* Call a host initialization */
   memory_init (h_pg_data,pg_size_dw);
   memory_init (h_pg_corr_data,pg_size_dw);
@@ -52,7 +52,8 @@ int main() {
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   /* Copy the data from the host memory to the GPU */
-  cudaMemcpy (d_pg_data, h_pg_data, pg_size, cudaMemcpyHostToDevice);
+  err = cudaMemcpy (d_pg_data, h_pg_data, pg_size, cudaMemcpyHostToDevice);
+  CUDA_CHK_ERR(err);
 
   /* Cuda Kernel calls and associated variables */
   dim3 cuda_grid;
@@ -74,14 +75,18 @@ int main() {
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
   /* Once the computation is done, move the corrected data back to the host */
-  cudaMemcpy (h_pg_corr_data, d_pg_corr_data, pg_size, cudaMemcpyDeviceToHost);
+  err = cudaMemcpy (h_pg_corr_data, d_pg_corr_data, pg_size, cudaMemcpyDeviceToHost);
+  CUDA_CHK_ERR(err);
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  UINTP h_dbg = (UINTP) malloc ((1<<M)*4);
+  err = cudaMemcpyFromSymbol (h_dbg,gb_gf_ext,((1<<M)*4));
+  CUDA_CHK_ERR(err);
 
   // Final print 
-  for(i=0;i<pg_size_dw;i++){
-	 printf("GF element %03d is %04x \n",i,h_pg_data[i]);
-	 printf("GF element %03d is %04x \n",i,h_pg_corr_data[i]);
+  //for(i=0;i<pg_size_dw;i++){
+  for(i=0;i<(1<<M);i++){
+	 printf("GF element %03d is %04x \n",i,h_dbg[i]);
   }
 
   /* Free up the cuda memory */
@@ -98,11 +103,11 @@ GFN_DEF void cuda_gf_init(){
   gb_gf_log_table[1] = gb_gf_log_table[0] = 0;
 
   for (i=1;i<(1<<M)-1;i++) {
-	 elem = elem << 1;
+	  elem = elem << 1;
     if (elem >= (1<<M)) {
-		elem = (elem ^ CS_PRIM_POLY[M]) & CS_GF_WND;
+		  elem = (elem ^ CS_PRIM_POLY[M]) & CS_GF_WND;
     }
-	 gb_gf_ext[i] = elem;
+	  gb_gf_ext[i] = elem;
     gb_gf_log_table[elem] = i;
   }
 }
