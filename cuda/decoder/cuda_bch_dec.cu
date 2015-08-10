@@ -17,7 +17,7 @@
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 GFN_DEF void cuda_gf_init();
-GFN_DEF void cuda_bch_syndrome(UINTP pg_data, UINTP corr_data);
+GFN_DEF void cuda_bch_syndrome_mult(UINTP pg_data, UINTP synd_mult);
 
 // Function to initialize the memory (DW) 
 void memory_init (UINTP x,int N) {
@@ -43,6 +43,7 @@ int main() {
   UINTP d_pg_data;      CUDA_CHK_ERR(cudaMalloc(&d_pg_data,pg_size));
   UINTP d_pg_syndrome;  CUDA_CHK_ERR(cudaMalloc(&d_pg_syndrome,2*T*NBLOCKS));
   UINTP d_pg_corr_data; CUDA_CHK_ERR(cudaMalloc(&d_pg_corr_data, pg_size));
+  UINTP d_pg_synd_mult; CUDA_CHK_ERR(cudaMalloc(&d_pg_synd_mult,pg_size*2*T));
    
   /* Call a host initialization */
   memory_init (h_pg_data,pg_size_dw);
@@ -65,17 +66,17 @@ int main() {
 
   // The block and grid size cannot be more than 1024
 
-  cuda_grid.x  = 2*T;    
-  cuda_grid.y  = NBLOCKS;
+  cuda_grid.x  = NBLOCKS;
+  cuda_grid.y  = 2*T;
   cuda_grid.z  = 1;
-  cuda_block.x = pg_size_dw/NBLOCKS; 
-  cuda_block.y = 1; 
+  cuda_block.x = pg_size_dw/NBLOCKS;
+  cuda_block.y = SZ_OF_UINT;
   cuda_block.z = 1;
-  cuda_bch_syndrome CUDA_VEC (d_pg_data,d_pg_corr_data);
+  cuda_bch_syndrome_mult CUDA_VEC (d_pg_data,d_pg_synd_mult);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
   /* Once the computation is done, move the corrected data back to the host */
-  err = cudaMemcpy (h_pg_corr_data, d_pg_corr_data, pg_size, cudaMemcpyDeviceToHost);
+  err = cudaMemcpy (h_pg_corr_data, d_pg_synd_mult, pg_size, cudaMemcpyDeviceToHost);
   CUDA_CHK_ERR(err);
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -116,21 +117,25 @@ GFN_DEF void cuda_gf_init(){
 
 
 /* syndrome generator */
-GFN_DEF void cuda_bch_syndrome(UINTP pg_data, UINTP synd_mult){
+GFN_DEF void cuda_bch_syndrome_mult(UINTP pg_data, UINTP synd_mult){
 
-  UINT dw_data,dw_pos,synd_i,alpha_pow_i;;
-  UINT pow_i;
+  UINT dw_data_pos,dw_pos,synd_i;
+  UINT pow_i,bit_pos,bl_dw_pos;
+  
 
   // The position of the 32 bit is the thread id   
-  dw_pos   = (blockDim.x * blockIdx.y) + threadIdx.x;
-  synd_i   = blockIdx.x;
-  dw_data  = pg_data[dw_pos];
-  synd_mult[dw_pos] = 0;
-  int i;
+  bl_dw_pos = threadIdx.x;
+  bit_pos   = threadIdx.y;
 
-  // For loop for adding up the size of bits
-  for(i=0;i<SZ_OF_UINT;i++) {
-	 pow_i = ((synd_i * dw_pos)+i) % ((1<<M)-1); 
-	 if(dw_data & (1<<(i+0))) { synd_mult[dw_pos] ^= gb_gf_log_table[pow_i];}
-  }
+  dw_pos   = (blockDim.x * blockIdx.x) + threadIdx.x;
+  synd_i   = blockIdx.y;
+
+  dw_data_pos = pg_data[dw_pos] & (1<<bit_pos);
+
+  synd_mult[dw_pos] = 0;
+  __syncthreads();
+
+  pow_i = ((synd_i * bl_dw_pos)+bit_pos) % ((1<<M)-1); 
+  //  if(dw_data_pos) { synd_mult[dw_pos] ^= gb_gf_log_table[pow_i];}
+  if(dw_data_pos) { atomicXor(&(synd_mult[dw_pos]),gb_gf_log_table[pow_i]);}
 }

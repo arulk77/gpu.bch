@@ -1,6 +1,6 @@
 // Pointers definition 
-#define UINTP unsigned short int*
-#define UINT  unsigned short int
+#define UINTP unsigned int*
+#define UINT  unsigned int
 #define NBLOCKS 4
 
 /*++++++++++++++++++ CUDA Macros ++++++++++++++++++*/
