@@ -1,7 +1,7 @@
 // Pointers definition 
-#define UINTP unsigned int*
-#define UINT  unsigned int
-#define NBLOCKS 1
+#define UINTP unsigned short int*
+#define UINT  unsigned short int
+#define NBLOCKS 4
 
 /*++++++++++++++++++ CUDA Macros ++++++++++++++++++*/
 #define CUDA_CHK_ERR(err) \
@@ -14,11 +14,13 @@
 #ifdef GPU_IMP
   #define CS_DEF   __constant__
   #define VAR_DEF  __device__
+  #define DFN_DEF  __device__
   #define GFN_DEF  __global__
   #define CUDA_VEC <<<cuda_grid,cuda_block>>> 
 #else
   #define CS_DEF   constant
   #define VAR_DEF 
+  #define DFN_DEF
   #define GFN_DEF 
   #define CUDA_VEC
 #endif

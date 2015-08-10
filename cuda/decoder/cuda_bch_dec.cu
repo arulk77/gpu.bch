@@ -31,7 +31,7 @@ void memory_init (UINTP x,int N) {
 // Main call for the routine
 int main() {
   int pg_size    = (BLOCK_SIZE/8)*NBLOCKS;
-  int pg_size_dw = ceil(pg_size/sizeof(UINT)); 
+  int pg_size_dw = pg_size/SZ_OF_UINT;
   int i;
   cudaError_t err = cudaSuccess;
 
@@ -66,9 +66,9 @@ int main() {
   // The block and grid size cannot be more than 1024
 
   cuda_grid.x  = 2*T;    
-  cuda_grid.y  = NBLOCKS;   
+  cuda_grid.y  = NBLOCKS;
   cuda_grid.z  = 1;
-  cuda_block.x = pg_size_dw; 
+  cuda_block.x = pg_size_dw/NBLOCKS; 
   cuda_block.y = 1; 
   cuda_block.z = 1;
   cuda_bch_syndrome CUDA_VEC (d_pg_data,d_pg_corr_data);
@@ -80,13 +80,14 @@ int main() {
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
   UINTP h_dbg = (UINTP) malloc ((1<<M)*4);
-  err = cudaMemcpyFromSymbol (h_dbg,gb_gf_ext,((1<<M)*4));
-  CUDA_CHK_ERR(err);
+  //  err = cudaMemcpyFromSymbol (h_dbg,gb_gf_ext,((1<<M)*4));
+  //  CUDA_CHK_ERR(err);
 
   // Final print 
-  //for(i=0;i<pg_size_dw;i++){
-  for(i=0;i<(1<<M);i++){
-	 printf("GF element %03d is %04x \n",i,h_dbg[i]);
+  for(i=0;i<pg_size_dw;i++){
+  // for(i=0;i<(1<<M);i++){
+	 //	 printf("GF element %03d is %04x \n",i,h_dbg[i]);
+	 printf("GF element %03d is %04x \n",i,h_pg_corr_data[i]);
   }
 
   /* Free up the cuda memory */
@@ -107,19 +108,29 @@ GFN_DEF void cuda_gf_init(){
     if (elem >= (1<<M)) {
 		  elem = (elem ^ CS_PRIM_POLY[M]) & CS_GF_WND;
     }
-	  gb_gf_ext[i] = elem;
+	 gb_gf_ext[i] = elem;
     gb_gf_log_table[elem] = i;
   }
 }
 
+
+
 /* syndrome generator */
-GFN_DEF void cuda_bch_syndrome(UINTP pg_data, UINTP corr_data){
+GFN_DEF void cuda_bch_syndrome(UINTP pg_data, UINTP synd_mult){
 
-  UINT dw_data;
-  int data_pos;
-   
-  data_pos = threadIdx.x;
-  dw_data  = pg_data[data_pos];
+  UINT dw_data,dw_pos,synd_i,alpha_pow_i;;
+  UINT pow_i;
 
-  corr_data[data_pos] = pg_data[data_pos];
+  // The position of the 32 bit is the thread id   
+  dw_pos   = (blockDim.x * blockIdx.y) + threadIdx.x;
+  synd_i   = blockIdx.x;
+  dw_data  = pg_data[dw_pos];
+  synd_mult[dw_pos] = 0;
+  int i;
+
+  // For loop for adding up the size of bits
+  for(i=0;i<SZ_OF_UINT;i++) {
+	 pow_i = ((synd_i * dw_pos)+i) % ((1<<M)-1); 
+	 if(dw_data & (1<<(i+0))) { synd_mult[dw_pos] ^= gb_gf_log_table[pow_i];}
+  }
 }

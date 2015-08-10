@@ -3,12 +3,13 @@
 #define M GALOIS_FIELD_EXT
 
 /* The number of error to be corrected is 16 */
-#define NO_OF_ERRORS 4
+#define NO_OF_ERRORS 8
 #define T NO_OF_ERRORS
 
 /* No of parity bits for the coder */
 #define PARITY_MT (T*M)
-#define PAD_BITS  ((ceil(PARITY_MT/8)*8)-PARITY_MT)
+#define SZ_OF_UINT (sizeof(UINT))
+#define PAD_BITS  ((ceil(PARITY_MT/SZ_OF_UINT)*SZ_OF_UINT)-PARITY_MT)
 
 /* Size of the block in bits */
 #define DATA_SIZE (512*8)
