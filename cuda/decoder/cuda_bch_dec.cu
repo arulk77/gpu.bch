@@ -43,7 +43,7 @@ int main() {
   UINTP d_pg_data;      CUDA_CHK_ERR(cudaMalloc(&d_pg_data,pg_size));
   UINTP d_pg_syndrome;  CUDA_CHK_ERR(cudaMalloc(&d_pg_syndrome,2*T*NBLOCKS));
   UINTP d_pg_corr_data; CUDA_CHK_ERR(cudaMalloc(&d_pg_corr_data, pg_size));
-  UINTP d_pg_synd_mult; CUDA_CHK_ERR(cudaMalloc(&d_pg_synd_mult,pg_size*2*T));
+  UINTP d_pg_synd_mult; CUDA_CHK_ERR(cudaMalloc(&d_pg_synd_mult,NBLOCKS*2*T));
    
   /* Call a host initialization */
   memory_init (h_pg_data,pg_size_dw);
@@ -76,7 +76,7 @@ int main() {
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
   /* Once the computation is done, move the corrected data back to the host */
-  err = cudaMemcpy (h_pg_corr_data, d_pg_synd_mult, pg_size, cudaMemcpyDeviceToHost);
+  err = cudaMemcpy (h_pg_corr_data, d_pg_synd_mult, 2*T*NBLOCKS, cudaMemcpyDeviceToHost);
   CUDA_CHK_ERR(err);
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -119,23 +119,27 @@ GFN_DEF void cuda_gf_init(){
 /* syndrome generator */
 GFN_DEF void cuda_bch_syndrome_mult(UINTP pg_data, UINTP synd_mult){
 
-  UINT dw_data_pos,dw_pos,synd_i;
-  UINT pow_i,bit_pos,bl_dw_pos;
+  UINT dw_data_pos,dw_pos,block_pos,synd_i;
+  UINT pow_i,bit_pos,bl_dw_pos,synd_pos,synd_mult_pos;
   
 
   // The position of the 32 bit is the thread id   
   bl_dw_pos = threadIdx.x;
   bit_pos   = threadIdx.y;
+  synd_pos  = blockIdx.y;
+  block_pos = blockIdx.x;
 
   dw_pos   = (blockDim.x * blockIdx.x) + threadIdx.x;
-  synd_i   = blockIdx.y;
+  synd_i   = synd_pos;
 
   dw_data_pos = pg_data[dw_pos] & (1<<bit_pos);
 
-  synd_mult[dw_pos] = 0;
+  synd_mult_pos = synd_i + gridDim.x * block_pos;
+
+  synd_mult[synd_mult_pos] = 0;
   __syncthreads();
 
-  pow_i = ((synd_i * bl_dw_pos)+bit_pos) % ((1<<M)-1); 
+  pow_i = ((synd_i * (bl_dw_pos * 32))+bit_pos) % ((1<<M)-1); 
   //  if(dw_data_pos) { synd_mult[dw_pos] ^= gb_gf_log_table[pow_i];}
-  if(dw_data_pos) { atomicXor(&(synd_mult[dw_pos]),gb_gf_log_table[pow_i]);}
+  if(dw_data_pos) { atomicXor(&synd_mult[synd_mult_pos],gb_gf_log_table[pow_i]);}
 }

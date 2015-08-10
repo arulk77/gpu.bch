@@ -1,7 +1,7 @@
 // Pointers definition 
 #define UINTP unsigned int*
 #define UINT  unsigned int
-#define NBLOCKS 4
+#define NBLOCKS 8
 
 /*++++++++++++++++++ CUDA Macros ++++++++++++++++++*/
 #define CUDA_CHK_ERR(err) \
