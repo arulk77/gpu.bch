@@ -3,7 +3,7 @@
 #define M GALOIS_FIELD_EXT
 
 /* The number of error to be corrected is 16 */
-#define NO_OF_ERRORS 8
+#define NO_OF_ERRORS 4
 #define T NO_OF_ERRORS
 
 /* No of parity bits for the coder */

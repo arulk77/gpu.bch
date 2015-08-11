@@ -21,5 +21,5 @@ __device__ UINT gf_mul(UINT x, UINT y) {
   sum = alpha_x + alpha_y; 
   sum = sum & CS_GF_WND; 
   // return gb_gf_ext[(alpha_x + alpha_y)%((1<<M)-1)];
-  return sum;
+  return gb_gf_ext[sum];
 }
