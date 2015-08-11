@@ -1,7 +1,11 @@
 // Pointers definition 
-#define UINTP unsigned int*
-#define UINT  unsigned int
-#define NBLOCKS 8
+#define DTYPEP unsigned short int*
+#define DTYPE  unsigned short int
+#define UINTP  unsigned int*
+#define UINT   unsigned int
+
+#define SZ_OF_UINT  (sizeof(UINT))
+#define SZ_OF_DTYPE (sizeof(DTYPE))
 
 /*++++++++++++++++++ CUDA Macros ++++++++++++++++++*/
 #define CUDA_CHK_ERR(err) \
