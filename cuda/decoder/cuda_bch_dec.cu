@@ -104,12 +104,11 @@ int main() {
   //  CUDA_CHK_ERR(err);
 
   // Final print 
+/*
   for(i=0;i<pg_size_dw;i++){
-  // for(i=0;i<(1<<M);i++){
-	 //	 printf("GF element %03d is %04x \n",i,h_dbg[i]);
 	 printf("GF element %03d is %04x \n",i,h_pg_corr_data[i]);
   }
-
+*/
   /* Free up the cuda memory */
   cudaFree(d_pg_data);cudaFree(d_pg_syndrome);cudaFree(d_pg_corr_data);
   free(h_pg_data);free(h_pg_corr_data);

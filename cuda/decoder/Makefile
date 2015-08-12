@@ -149,6 +149,10 @@ GENCODE_SMXX    := -gencode arch=compute_50,code=compute_50
 ## GENCODE_FLAGS   ?= $(GENCODE_SM20) $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM32) $(GENCODE_SM35) $(GENCODE_SM50) $(GENCODE_SMXX)
 GENCODE_FLAGS   ?= $(GENCODE_SM30)
 
+DEFINE_FLGAS   := 
+SZ := 512
+NO := 1
+
 ################################################################################
 
 FILE := cuda_bch_dec
@@ -159,7 +163,7 @@ all: clean build run
 build: $(FILE)
 
 $(FILE).o:$(FILE).cu
-	$(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+	$(NVCC) $(DEFINE_FLAGS) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 $(FILE): $(FILE).o
 	$(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
@@ -167,7 +171,15 @@ $(FILE): $(FILE).o
 	cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 
 run: build
-	./$(FILE)
+	nvprof -s --csv ./$(FILE) >& profile.txt
+
+cr:
+	cat profile.txt | grep HtoD | awk -F, '{print " b$(SZ)_h2d($(NO)) = "$$4";";}'>> matdata.m;\
+	cat profile.txt | grep DtoH | awk -F, '{print " b$(SZ)_d2h($(NO)) = "$$4";";}'>> matdata.m;\
+	cat profile.txt | grep bch_synd | awk -F, '{print " b$(SZ)_synd($(NO)) = "$$4";";}' >> matdata.m;\
+	cat profile.txt | grep bch_key | awk -F, '{print " b$(SZ)_keyq($(NO)) = "$$4";";}' >> matdata.m;\
+	cat profile.txt | grep bch_csearch | awk -F, '{print " b$(SZ)_csearch($(NO)) = "$$4";";}' >> matdata.m;\
+	echo "" >> matdata.m
 
 clean:
 	rm -f $(FILE) $(FILE).o
