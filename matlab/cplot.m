@@ -389,4 +389,39 @@ b128 = b128_h2d+b128_d2h+b128_synd+b128_keyq+b128_csearch;
 b256 = b256_h2d+b256_d2h+b256_synd+b256_keyq+b256_csearch;
 b512 = b512_h2d+b512_d2h+b512_synd+b512_keyq+b512_csearch;
 
-c128 = [b128_synd;b128_keyq;b128_csearch];
+c128 = [b128_d2h+b128_h2d;b128_synd;b128_keyq;b128_csearch];
+c512 = [b512_d2h+b512_h2d;b512_synd;b512_keyq;b512_csearch];
+c100 = ones(max)*100;
+
+% Plot the graph for all computation time 
+f = figure(1);
+plot(err_x,b128,'-sr',err_x,b256,'-sg',err_x,b512,'-sb',err_x,c100,'--m','LineWidth',2);
+legend('128 Byte Block','256 Byte Block','512 Byte block','Reference 100 \mus','Location','northwest');
+grid on;
+xlabel('Bit Error','fontweight','bold','fontsize',12);
+ylabel('BCH cmputation time on GPU (\mus)','fontweight','bold','fontsize',12);
+title('Bit Error vs Computation Time (\mus)','fontweight','bold','fontsize',14);
+axis([0,max+1,0,1100]);
+saveas(f,'Bit_error_comp_time.jpg','jpg');
+
+%% Plot the syndrome generator  
+f = figure(2);
+plot(err_x,b128_synd,'-sr',err_x,b256_synd,'-sg',err_x,b512_synd,'-sb',err_x,c100,'--m','LineWidth',2);
+legend('128 Byte Block','256 Byte Block','512 Byte block','Reference 100 \mus','Location','northwest');
+grid on;
+xlabel('Bit Error','fontweight','bold','fontsize',12);
+ylabel('BCH syndrome computation time on GPU (\mus)','fontweight','bold','fontsize',12);
+title('Bit Error vs Syndrome computation Time (\mus)','fontweight','bold','fontsize',14);
+axis([0,max+1,0,125]);
+saveas(f,'Bit_error_synd_time.jpg','jpg');
+
+% Plot the BAR grapsh
+f=figure(3);
+bar(c512');
+grid on;
+legend('Memory copy','Syndrome calc time ','iBMA calc time','Chein Search calc time','Location','northwest');
+xlabel('Bit Error','fontweight','bold','fontsize',12);
+ylabel('BCH computation time for BCH split (\mus)','fontweight','bold','fontsize',12);
+title('Bit Error vs BCH computation time split (\mus)','fontweight','bold','fontsize',14);
+axis([0,max+1,0,600]);
+saveas(f,'Bit_error_bar_gpu_time.jpg','jpg');
