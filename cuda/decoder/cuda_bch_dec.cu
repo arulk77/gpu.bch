@@ -1,10 +1,12 @@
 /* Cuda programming implementation of the bch decoder using Berkleykamp algorithm */
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 // System includes
-#include <stdio.h>                                                                                                                                                                                                                                                           #include <assert.h>                           
-#include <math.h>                                                                                                                                                                                                                                   
+#include <stdio.h>
+#include <assert.h>                           
+#include <math.h>
 
-// CUDA runtime                                                                                                                                                                                                                                                              #include <cuda_runtime.h>                                                                                                                                                                                                                                                    
+// CUDA runtime 
+#include <cuda_runtime.h> 
 #include <helper_functions.h>
 #include <helper_cuda.h>    
 
