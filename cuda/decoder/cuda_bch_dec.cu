@@ -5,10 +5,12 @@
 #include <assert.h>                           
 #include <math.h>
 
+/*
 // CUDA runtime 
 #include <cuda_runtime.h> 
 #include <helper_functions.h>
 #include <helper_cuda.h>    
+*/
 
 #define GPU_IMP
 // Project related includes
@@ -37,7 +39,6 @@ int main() {
   int pg_size    = (BLOCK_SIZE/8)*NBLOCKS;
   int pg_size_dw = pg_size/SZ_OF_DTYPE;
   int pg_syn_sz  = NBLOCKS*2*T*4;
-  int i;
   cudaError_t err = cudaSuccess;
 
   /* Allocate memory for each block on the host end */
@@ -116,7 +117,6 @@ int main() {
   free(h_pg_data);free(h_pg_corr_data);
   
 }
-
 
 /* Subroutine to initialize the galois field element */
 GFN_DEF void cuda_gf_init(){
@@ -229,11 +229,9 @@ GFN_DEF void cuda_bch_csearch (DTYPEP keyeq,DTYPEP pg_data,DTYPEP pg_corr_data) 
   DTYPE dw_pos    = blockDim.x * blockIdx.y + bl_pos;
   DTYPE key_pos   = blockIdx.y*(T+1);
 
-  DTYPE err_mask = 0;
   DTYPE sum,err_det;;
   DTYPE alpha_pos;
   DTYPE alpha_val;
-  DTYPE mult=0;
   int i;
 
   // Find if the poistion has a solvable error 
@@ -241,8 +239,8 @@ GFN_DEF void cuda_bch_csearch (DTYPEP keyeq,DTYPEP pg_data,DTYPEP pg_corr_data) 
   for (i=0;i<=T;i++) {
     alpha_pos = (bit_pos+(bl_pos*SZ_OF_DTYPE));
     alpha_pos = (alpha_pos*i)%CS_GF_WND;
-	 alpha_val = gb_gf_log_table[alpha_pos];
-	 sum = sum ^ gf_mul(keyeq[key_pos+i],alpha_val);
+	  alpha_val = gb_gf_log_table[alpha_pos];
+	  sum = sum ^ gf_mul(keyeq[key_pos+i],alpha_val);
   }
 
   err_det = (sum != 0) ? 0 : 1;

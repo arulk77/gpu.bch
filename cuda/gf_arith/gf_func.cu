@@ -25,9 +25,7 @@ __device__ UINT gf_mul(UINT x, UINT y) {
   UINT alpha_x,alpha_y,sum;
   alpha_x = gb_gf_log_table[x];
   alpha_y = gb_gf_log_table[y];
-  sum = alpha_x + alpha_y; 
-  sum = sum % CS_GF_WND; 
-  // return gb_gf_ext[(alpha_x + alpha_y)%((1<<M)-1)];
+  sum = (alpha_x + alpha_y) % CS_GF_WND; 
   return gb_gf_ext[sum];
 
 #else 

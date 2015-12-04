@@ -6,7 +6,7 @@
 
 /* The number of error to be corrected is 16 */
 #ifndef NO_OF_ERRORS
-  #define NO_OF_ERRORS 4 
+  #define NO_OF_ERRORS 13 
 #endif
 #define T NO_OF_ERRORS
 
