@@ -155,8 +155,8 @@ NO := 1
 
 ################################################################################
 
-## FILE := cuda_rs_dec
-FILE := cuda_bch_dec
+FILE := cuda_rs_dec
+## FILE := cuda_bch_dec
 
 # Target rules
 all: clean build run
