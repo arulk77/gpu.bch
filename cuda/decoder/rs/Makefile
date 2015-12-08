@@ -131,7 +131,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 # Common includes and paths for CUDA
-INCLUDES  := -I../common/inc -I./../inc -I./../gf_arith
+INCLUDES  := -I../../common/inc -I./../../inc -I./../../gf_arith
 LIBRARIES :=
 
 ################################################################################
@@ -156,7 +156,6 @@ NO := 1
 ################################################################################
 
 FILE := cuda_rs_dec
-## FILE := cuda_bch_dec
 
 # Target rules
 all: clean build run
@@ -168,18 +167,18 @@ $(FILE).o:$(FILE).cu
 
 $(FILE): $(FILE).o
 	$(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-	mkdir -p ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
-	cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
+	mkdir -p ../../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
+	cp $@ ../../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 
 run: build
 	nvprof -s --csv ./$(FILE) >& profile.txt
 
 cr:
-	cat profile.txt | grep HtoD | awk -F, '{print " b$(SZ)_h2d($(NO)) = "$$4";";}'>> matdata.m;\
-	cat profile.txt | grep DtoH | awk -F, '{print " b$(SZ)_d2h($(NO)) = "$$4";";}'>> matdata.m;\
-	cat profile.txt | grep bch_synd | awk -F, '{print " b$(SZ)_synd($(NO)) = "$$4";";}' >> matdata.m;\
-	cat profile.txt | grep bch_key | awk -F, '{print " b$(SZ)_keyq($(NO)) = "$$4";";}' >> matdata.m;\
-	cat profile.txt | grep bch_csearch | awk -F, '{print " b$(SZ)_csearch($(NO)) = "$$4";";}' >> matdata.m;\
+	cat profile.txt | grep HtoD | awk -F, '{print " rs$(SZ)_h2d($(NO)) = "$$4";";}'>> matdata.m;\
+	cat profile.txt | grep DtoH | awk -F, '{print " rs$(SZ)_d2h($(NO)) = "$$4";";}'>> matdata.m;\
+	cat profile.txt | grep rs_synd | awk -F, '{print " rs$(SZ)_synd($(NO)) = "$$4";";}' >> matdata.m;\
+	cat profile.txt | grep rs_key | awk -F, '{print " rs$(SZ)_keyq($(NO)) = "$$4";";}' >> matdata.m;\
+	cat profile.txt | grep bch_csearch | awk -F, '{print " rs$(SZ)_csearch($(NO)) = "$$4";";}' >> matdata.m;\
 	echo "" >> matdata.m
 
 clean:

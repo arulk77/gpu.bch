@@ -10,7 +10,7 @@
 /*++++++++++++++++++ CUDA Macros ++++++++++++++++++*/
 #define CUDA_CHK_ERR(err) \
   if(err != cudaSuccess) { \
-	 fprintf(stderr,"Got error on Cuda: (%s)\n",cudaGetErrorString(err)); \
+         fprintf(stderr,"Got error on Cuda: (%s) on file %s:%i \n",cudaGetErrorString(err),__FILE__,__LINE__); \
     exit(EXIT_FAILURE); \
 }
 

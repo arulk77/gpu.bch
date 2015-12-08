@@ -4,26 +4,7 @@
 #endif
 #define M GALOIS_FIELD_EXT
 
-/* The number of error to be corrected is 16 */
-#ifndef NO_OF_ERRORS
-  #define NO_OF_ERRORS 13 
-#endif
-#define T NO_OF_ERRORS
-
-/* No of parity bits for the coder */
-#define PARITY_MT   (T*M)
-#define PAD_BITS  ((ceil(PARITY_MT/SZ_OF_UINT)*SZ_OF_UINT)-PARITY_MT)
-
-/* Size of the block in bits */
-#ifndef SEC_SIZE
-  #define SEC_SIZE 512
-#endif 
-#define DATA_SIZE (SEC_SIZE*8)
-
-// Align to a byte boundary
-#define BLOCK_SIZE (DATA_SIZE+PARITY_MT+PAD_BITS)
-#define NBLOCKS (2048/SEC_SIZE) 
-
+/* Definition froor the primite polynomials */
 #define PRIMITIVE_POLY 0b10_0000_0001_1011
 #define P_XOR 0x1b // 0b0_0000_0001_1011
 #define ALPHA 0x02 // 0b0_0000_0000_0010 // Alpha, which is the primitive 

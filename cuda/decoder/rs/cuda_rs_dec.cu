@@ -41,7 +41,7 @@ int main() {
   int bl_sz     = 256;
   int bl_sz_dw  = bl_sz/SZ_OF_DTYPE;
   // int bl_syn_sz = 2*T*(SZ_OF_DTYPE); 
-  int bl_syn_sz = 2*T*1024;
+  int bl_syn_sz = 2*T;
   cudaError_t err = cudaSuccess;
 
   /* Allocate memory for each block on the host end */
@@ -71,18 +71,16 @@ int main() {
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
   // The block and grid size cannot be more than 1024
-  // cuda_grid.x  = 2*T; 
-  cuda_grid.x  = 2*T/4; 
+  cuda_grid.x  = 2*T; 
   cuda_grid.y  = 1; 
   cuda_grid.z  = 1;
-  cuda_block.x = 1024;
+  cuda_block.x = RS_N;
   cuda_block.y = 1; 
   cuda_block.z = 1;
   cuda_rs_syndrome CUDA_VEC (d_pg_data,d_pg_syndrome);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
-
-/*
+  // Call berlekamp massey algorithm
   cuda_grid.x  = 1;cuda_grid.y  = 1;cuda_grid.z  = 1;
   cuda_block.x = 1;
   cuda_block.y = 1;
@@ -90,6 +88,7 @@ int main() {
   cuda_rs_keyeq CUDA_VEC (d_pg_syndrome,d_pg_keyeq);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
+/*
   cuda_grid.x  = pg_size_dw/NBLOCKS;
   cuda_grid.y  = NBLOCKS;
   cuda_grid.z  = 1;
@@ -144,7 +143,7 @@ GFN_DEF void cuda_gf_init(){
 /* syndrome generator */
 GFN_DEF void cuda_rs_syndrome (DTYPEP pg_data, UINTP syndrome){
 
-  __shared__ int l_syndrome[1024; 
+  __shared__ int l_syndrome[RS_N];
 
   // The position of the 32 bit is the thread id   
   DTYPE bl_dw_pos  = threadIdx.x;
@@ -167,7 +166,7 @@ GFN_DEF void cuda_rs_syndrome (DTYPEP pg_data, UINTP syndrome){
   __syncthreads(); // This will make sure the array is synchronized 
   
 
-  int index = 4*1024; 
+  int index = RS_N; 
   index /= 2; 
 
   while (index != 0) {

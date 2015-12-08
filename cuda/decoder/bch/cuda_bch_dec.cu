@@ -16,6 +16,7 @@
 // Project related includes
 #include <bch_cuda_defines.h>
 #include <gf_defines.h>
+#include <gf_bch_defines.h>
 #include <gf_func.cu>
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -36,9 +37,9 @@ void memory_init (DTYPEP x,int N) {
 
 // Main call for the routine
 int main() {
-  int pg_size    = (BLOCK_SIZE/8)*NBLOCKS;
+  int pg_size    = (F_BLOCK_SIZE/8)*F_NBLOCKS;
   int pg_size_dw = pg_size/SZ_OF_DTYPE;
-  int pg_syn_sz  = NBLOCKS*2*T*4;
+  int pg_syn_sz  = F_NBLOCKS*2*T*4;
   cudaError_t err = cudaSuccess;
 
   /* Allocate memory for each block on the host end */
@@ -49,7 +50,7 @@ int main() {
   DTYPEP d_pg_data;      CUDA_CHK_ERR(cudaMalloc(&d_pg_data,pg_size));
   DTYPEP d_pg_corr_data; CUDA_CHK_ERR(cudaMalloc(&d_pg_corr_data, pg_size));
   UINTP  d_pg_syndrome;  CUDA_CHK_ERR(cudaMalloc(&d_pg_syndrome,pg_syn_sz));
-  DTYPEP d_pg_keyeq;     CUDA_CHK_ERR(cudaMalloc(&d_pg_keyeq,(T+1)*SZ_OF_DTYPE*NBLOCKS));
+  DTYPEP d_pg_keyeq;     CUDA_CHK_ERR(cudaMalloc(&d_pg_keyeq,(T+1)*SZ_OF_DTYPE*F_NBLOCKS));
    
   /* Call a host initialization */
   memory_init (h_pg_data,pg_size_dw);
@@ -72,24 +73,24 @@ int main() {
 
   // The block and grid size cannot be more than 1024
 
-  cuda_grid.x  = NBLOCKS;
+  cuda_grid.x  = F_NBLOCKS;
   cuda_grid.y  = 2*T;
   cuda_grid.z  = 1;
-  cuda_block.x = pg_size_dw/NBLOCKS;
+  cuda_block.x = pg_size_dw/F_NBLOCKS;
   cuda_block.y = SZ_OF_DTYPE;
   cuda_block.z = 1;
   cuda_bch_syndrome CUDA_VEC (d_pg_data,d_pg_syndrome);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
   cuda_grid.x  = 1;cuda_grid.y  = 1;cuda_grid.z  = 1;
-  cuda_block.x = NBLOCKS;
+  cuda_block.x = F_NBLOCKS;
   cuda_block.y = 1;
   cuda_block.z = 1;
   cuda_bch_keyeq CUDA_VEC (d_pg_syndrome,d_pg_keyeq);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
-  cuda_grid.x  = pg_size_dw/NBLOCKS;
-  cuda_grid.y  = NBLOCKS;
+  cuda_grid.x  = pg_size_dw/F_NBLOCKS;
+  cuda_grid.y  = F_NBLOCKS;
   cuda_grid.z  = 1;
   cuda_block.x = SZ_OF_DTYPE;
   cuda_block.y = 1;
