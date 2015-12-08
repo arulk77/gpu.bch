@@ -14,6 +14,7 @@
 // Project related includes
 #include <bch_cuda_defines.h>
 #include <gf_defines.h>
+#include <gf_rs_defines.h>
 #include <gf_func.cu>
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -60,7 +61,6 @@ int main() {
 
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
   /* Copy the data from the host memory to the GPU */
   err = cudaMemcpy (d_pg_data, h_pg_data, bl_sz, cudaMemcpyHostToDevice);
   CUDA_CHK_ERR(err);
@@ -88,16 +88,14 @@ int main() {
   cuda_rs_keyeq CUDA_VEC (d_pg_syndrome,d_pg_keyeq);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
-/*
-  cuda_grid.x  = pg_size_dw/NBLOCKS;
-  cuda_grid.y  = NBLOCKS;
+  cuda_grid.x  = F_NBLOCKS;
+  cuda_grid.y  = F_NBLOCKS;
   cuda_grid.z  = 1;
   cuda_block.x = SZ_OF_DTYPE;
   cuda_block.y = 1;
   cuda_block.z = 1;
   cuda_rs_csearch CUDA_VEC (d_pg_keyeq,d_pg_data,d_pg_corr_data);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
-*/
 
   /* Once the computation is done, move the corrected data back to the host */
   err = cudaMemcpy (h_pg_corr_data, d_pg_corr_data, bl_sz, cudaMemcpyDeviceToHost);

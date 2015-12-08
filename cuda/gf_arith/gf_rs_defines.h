@@ -1,6 +1,6 @@
 /* The number of error to be corrected is 16 */
 #ifndef NO_OF_ERRORS
-  #define NO_OF_ERRORS 13 
+  #define NO_OF_ERRORS 8 
 #endif
 #define T NO_OF_ERRORS
 
@@ -19,5 +19,5 @@
 
 // Align to a byte boundary
 #define F_BLOCK_SIZE (DATA_SIZE+PARITY_MT+PAD_BITS)
-#define F_NBLOCKS    (2048/SEC_SIZE) 
+#define F_NBLOCKS    (2048/F_SEC_SIZE) 
 

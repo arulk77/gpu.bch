@@ -1,10 +1,10 @@
 /* FOR 512 * 8 K bits the galois extension is 13 */
 #ifndef GALOIS_FEILD_EXT
-  #define GALOIS_FIELD_EXT 13
+  #define GALOIS_FIELD_EXT 8 
 #endif
 #define M GALOIS_FIELD_EXT
 
-/* Definition froor the primite polynomials */
+/* Definition for the primite polynomials */
 #define PRIMITIVE_POLY 0b10_0000_0001_1011
 #define P_XOR 0x1b // 0b0_0000_0001_1011
 #define ALPHA 0x02 // 0b0_0000_0000_0010 // Alpha, which is the primitive 
