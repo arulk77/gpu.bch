@@ -171,14 +171,14 @@ $(FILE): $(FILE).o
 	cp $@ ../../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 
 run: build
-	nvprof -s --csv ./$(FILE) >& profile.txt
+	nvprof -u us -s --csv ./$(FILE) >& profile.txt
 
 cr:
 	cat profile.txt | grep HtoD | awk -F, '{print " rs$(SZ)_h2d($(NO)) = "$$4";";}'>> matdata.m;\
 	cat profile.txt | grep DtoH | awk -F, '{print " rs$(SZ)_d2h($(NO)) = "$$4";";}'>> matdata.m;\
-	cat profile.txt | grep rs_fft | awk -F, '{print " rs$(SZ)_synd($(NO)) = "$$4";";}' >> matdata.m;\
+	cat profile.txt | grep rs_fft | awk -F, '{print " rs$(SZ)_fft($(NO)) = "$$4";";}' >> matdata.m;\
 	cat profile.txt | grep rs_key | awk -F, '{print " rs$(SZ)_keyq($(NO)) = "$$4";";}' >> matdata.m;\
-	cat profile.txt | grep rs_csearch | awk -F, '{print " rs$(SZ)_csearch($(NO)) = "$$4";";}' >> matdata.m;\
+	cat profile.txt | grep rs_errpoly | awk -F, '{print " rs$(SZ)_errpoly($(NO)) = "$$4";";}' >> matdata.m;\
 	echo "" >> matdata.m
 
 clean:
