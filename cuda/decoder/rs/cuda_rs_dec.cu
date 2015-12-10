@@ -67,6 +67,8 @@ int main() {
   cuda_gf_init CUDA_VEC ();
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
+  printf ("Galois field is %3d error is %3d block size is %6d \n",M,T,RS_N);
+
 #ifndef ERR_SEEN
   // The block and grid size cannot be more than 1024
   cuda_grid.x  = 2*T; 
@@ -121,7 +123,7 @@ int main() {
   }
 
 */
-  printf ("Galois field is %3d error is %3d\n",M,T);
+
    
   /* Free up the cuda memory */
   cudaFree(d_pg_data);cudaFree(d_pg_syndrome);cudaFree(d_pg_corr_data);
