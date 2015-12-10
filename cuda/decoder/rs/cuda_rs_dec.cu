@@ -27,7 +27,7 @@ dim3 cuda_block;
 GFN_DEF void cuda_gf_init();
 GFN_DEF void cuda_rs_fft(DTYPEP t_data, UINTP f_data);
 GFN_DEF void cuda_rs_keyeq(UINTP syndrome, DTYPEP keyeq);
-GFN_DEF void cuda_rs_csearch(DTYPEP keyeq,DTYPEP pg_data, DTYPEP pg_corr_data);
+GFN_DEF void cuda_rs_errpoly(DTYPEP keyeq,UINTP fft_data, DTYPEP pg_data, DTYPEP pg_corr_data);
 
 // Function to initialize the memory (DW) 
 void memory_init (DTYPEP x,int N) {
@@ -98,12 +98,9 @@ int main() {
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
   cuda_grid.x  = F_NO_OF_SC;
-  cuda_grid.y  = F_NO_OF_SC;
-  cuda_grid.z  = 1;
-  cuda_block.x = 4;
-  cuda_block.y = 1;
-  cuda_block.z = 1;
-  cuda_rs_csearch CUDA_VEC (d_pg_keyeq,d_pg_data,d_pg_corr_data);
+  cuda_grid.y  = 1; cuda_grid.z  = 1;
+  cuda_block.x = 1; cuda_block.y = 1; cuda_block.z = 1;
+  cuda_rs_errpoly CUDA_VEC (d_pg_keyeq,d_pg_rs_rx_fft,d_pg_data,d_pg_corr_data);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 #endif
 
@@ -245,31 +242,24 @@ GFN_DEF void cuda_rs_keyeq (UINTP syndrome, DTYPEP keyeq) {
 }
 
 /* Chein search algorithm to correct the errors */
-GFN_DEF void cuda_rs_csearch (DTYPEP keyeq,DTYPEP pg_data,DTYPEP pg_corr_data) {
-  DTYPE bit_pos   = threadIdx.x;
-   
-  DTYPE bl_pos    = blockIdx.x;
-  DTYPE dw_pos    = blockDim.x * blockIdx.y + bl_pos;
-  DTYPE key_pos   = blockIdx.y*(T+1);
+GFN_DEF void cuda_rs_errpoly (DTYPEP keyeq,UINTP fft_data, DTYPEP pg_data,DTYPEP pg_corr_data) {
 
-  DTYPE err_mask = 0;
-  DTYPE sum,err_det;;
-  DTYPE alpha_pos;
-  DTYPE alpha_val;
-  DTYPE mult=0;
-  int i;
+  UINT err_vec;
+  int block_no = threadIdx.x;
+  int i,j;
 
-  // Find if the poistion has a solvable error 
-
-  for (i=0;i<=T;i++) {
-    alpha_pos = (bit_pos+(bl_pos*SZ_OF_DTYPE));
-    alpha_pos = (alpha_pos*i)%CS_GF_WND;
-	 alpha_val = gb_gf_log_table[alpha_pos];
-	 sum = sum ^ gf_mul(keyeq[key_pos+i],alpha_val);
+  for (i=0;i<RS_N;i++) {
+    if (i < 2*T) {
+      err_vec = fft_data[block_no*RS_N+i]; 
+    } else  {
+      err_vec = 0;
+      for (j=0;j<2*T;j++) {
+        err_vec = err_vec ^ keyeq[block_no*2*T+j];
+      }
+    }
+    pg_corr_data[block_no*RS_N+i] = pg_data[block_no*RS_N+i] - err_vec;
   }
 
-  err_det = (sum != 0) ? 0 : 1;
-  pg_data[dw_pos] = pg_data[dw_pos] ^ (err_det << bit_pos);
 
   /*
   pg_corr_data[dw_pos] = pg_corr_data[dw_pos] ^ (err_det << bit_pos);
