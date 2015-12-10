@@ -178,7 +178,7 @@ cr:
 	cat profile.txt | grep DtoH | awk -F, '{print " rs$(SZ)_d2h($(NO)) = "$$4";";}'>> matdata.m;\
 	cat profile.txt | grep rs_synd | awk -F, '{print " rs$(SZ)_synd($(NO)) = "$$4";";}' >> matdata.m;\
 	cat profile.txt | grep rs_key | awk -F, '{print " rs$(SZ)_keyq($(NO)) = "$$4";";}' >> matdata.m;\
-	cat profile.txt | grep bch_csearch | awk -F, '{print " rs$(SZ)_csearch($(NO)) = "$$4";";}' >> matdata.m;\
+	cat profile.txt | grep rs_csearch | awk -F, '{print " rs$(SZ)_csearch($(NO)) = "$$4";";}' >> matdata.m;\
 	echo "" >> matdata.m
 
 clean:
