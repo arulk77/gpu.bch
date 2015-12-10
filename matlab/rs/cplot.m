@@ -508,31 +508,33 @@ rs512_errpoly = ones(1,max);
 rs128 = rs128_h2d+rs128_d2h+rs128_fft+rs128_keyq+rs128_errpoly;
 rs256 = rs256_h2d+rs256_d2h+rs256_fft+rs256_keyq+rs256_errpoly;
 rs512 = rs512_h2d+rs512_d2h+rs512_fft+rs512_keyq+rs512_errpoly;
+rs1024 = rs1024_h2d+rs1024_d2h+rs1024_fft+rs1024_keyq+rs1024_errpoly;
 
 c128 = [rs128_d2h+rs128_h2d;rs128_fft;rs128_keyq;rs128_errpoly];
 c512 = [rs512_d2h+rs512_h2d;rs512_fft;rs512_keyq;rs512_errpoly];
+c1024 = [rs1024_d2h+rs1024_h2d;rs1024_fft;rs1024_keyq;rs1024_errpoly];
 c100 = ones(max)*100;
 
 % Plot the graph for all computation time 
 f = figure(1);
-plot(err_x,rs128,'-sr',err_x,rs256,'-sg',err_x,rs512,'-sb',err_x,c100,'--m','LineWidth',2);
-legend('128 Byte Block','256 Byte Block','512 Byte block','Reference 100 \mus','Location','northwest');
+plot(err_x,rs128,'-sr',err_x,rs256,'-sg',err_x,rs512,'-sb',err_x,rs1024,'-sm',err_x,c100,'--m','LineWidth',2);
+legend('128 RS code','256 RS code','512 RS code','1024 RS dode','Reference 100 \mus','Location','northwest');
 grid on;
 xlabel('Bit Error','fontweight','bold','fontsize',12);
 ylabel('BCH cmputation time on GPU (\mus)','fontweight','bold','fontsize',12);
 title('Bit Error vs. Computation Time on GPU (\mus)','fontweight','bold','fontsize',14);
-axis([0,max+1,0,1100]);
+axis([0,max+1,0,3500]);
 saveas(f,'Bit_error_comp_time.jpg','jpg');
 
-%% Plot the fftrome generator  
+%% Plot the fft generator  
 f = figure(2);
-plot(err_x,rs128_fft,'-sr',err_x,rs256_fft,'-sg',err_x,rs512_fft,'-sb',err_x,c100,'--m','LineWidth',2);
-legend('128 Byte Block','256 Byte Block','512 Byte block','Reference 100 \mus','Location','northwest');
+plot(err_x,rs128_fft,'-sr',err_x,rs256_fft,'-sg',err_x,rs512_fft,'-sb',err_x,rs1024_fft,'-sm',err_x,c100,'--m','LineWidth',2);
+legend('128 RS code','256 RS code','512 RS code','1024 RS code','Reference 100 \mus','Location','northwest');
 grid on;
 xlabel('Bit Error','fontweight','bold','fontsize',12);
-ylabel('BCH fftrome computation time on GPU (\mus)','fontweight','bold','fontsize',12);
+ylabel('BCH fft computation time on GPU (\mus)','fontweight','bold','fontsize',12);
 title('Bit Error vs. Syndrome computation Time (\mus)','fontweight','bold','fontsize',14);
-axis([0,max+1,0,125]);
+axis([0,max+1,0,550]);
 saveas(f,'Bit_error_fft_time.jpg','jpg');
 
 % Plot the BAR grapsh
@@ -543,5 +545,5 @@ legend('Memory copy','Syndrome calc time ','iBMA calc time','Chein Search calc t
 xlabel('Bit Error','fontweight','bold','fontsize',12);
 ylabel('BCH computation time divided (\mus)','fontweight','bold','fontsize',12);
 title('Bit Error vs. BCH computation time divided (\mus)','fontweight','bold','fontsize',14);
-axis([0,max+1,0,600]);
+axis([0,max+1,0,1250]);
 saveas(f,'Bit_error_bar_gpu_time.jpg','jpg');
