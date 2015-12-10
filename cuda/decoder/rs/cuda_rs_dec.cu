@@ -25,7 +25,7 @@ dim3 cuda_block;
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 GFN_DEF void cuda_gf_init();
-GFN_DEF void cuda_rs_syndrome(DTYPEP pg_data, UINTP syndrome);
+GFN_DEF void cuda_rs_fft(DTYPEP t_data, UINTP f_data);
 GFN_DEF void cuda_rs_keyeq(UINTP syndrome, DTYPEP keyeq);
 GFN_DEF void cuda_rs_csearch(DTYPEP keyeq,DTYPEP pg_data, DTYPEP pg_corr_data);
 
@@ -39,30 +39,27 @@ void memory_init (DTYPEP x,int N) {
 
 // Main call for the routine
 int main() {
-  int bl_sz     = 256;
-  int bl_sz_dw  = bl_sz/SZ_OF_DTYPE;
-  // int bl_syn_sz = 2*T*(SZ_OF_DTYPE); 
-  int bl_syn_sz = 2*T;
   cudaError_t err = cudaSuccess;
 
   /* Allocate memory for each block on the host end */
-  DTYPEP h_pg_data       = (DTYPEP) malloc(bl_sz);
-  DTYPEP h_pg_corr_data  = (DTYPEP) malloc(bl_sz);
+  DTYPEP h_pg_data       = (DTYPEP) malloc(F_CPG_SIZE_BYTES);
+  DTYPEP h_pg_corr_data  = (DTYPEP) malloc(F_CPG_SIZE_BYTES);
   
   /* Alocate memory for the block on the GPU */
-  DTYPEP d_pg_data;      CUDA_CHK_ERR(cudaMalloc(&d_pg_data,bl_sz));
-  DTYPEP d_pg_corr_data; CUDA_CHK_ERR(cudaMalloc(&d_pg_corr_data, bl_sz));
-  UINTP  d_pg_syndrome;  CUDA_CHK_ERR(cudaMalloc(&d_pg_syndrome,bl_syn_sz));
-  DTYPEP d_pg_keyeq;     CUDA_CHK_ERR(cudaMalloc(&d_pg_keyeq,(T+1)*SZ_OF_DTYPE));
+  DTYPEP d_pg_data;      CUDA_CHK_ERR(cudaMalloc(&d_pg_data,F_CPG_SIZE_BYTES));
+  DTYPEP d_pg_corr_data; CUDA_CHK_ERR(cudaMalloc(&d_pg_corr_data,F_CPG_SIZE_BYTES));
+  UINTP  d_pg_syndrome;  CUDA_CHK_ERR(cudaMalloc(&d_pg_syndrome,2*T*F_NO_OF_SC*4));
+  UINTP  d_pg_rs_rx_fft; CUDA_CHK_ERR(cudaMalloc(&d_pg_rs_rx_fft,RS_N*F_NO_OF_SC*4));
+  DTYPEP d_pg_keyeq;     CUDA_CHK_ERR(cudaMalloc(&d_pg_keyeq,(T+1)*F_NO_OF_SC*4));
    
   /* Call a host initialization */
-  memory_init (h_pg_data,bl_sz_dw);
-  memory_init (h_pg_corr_data,bl_sz_dw);
+  memory_init (h_pg_data,F_CPG_SIZE_BYTES/4);
+  memory_init (h_pg_corr_data,F_CPG_SIZE_BYTES/4);
 
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
   /* Copy the data from the host memory to the GPU */
-  err = cudaMemcpy (d_pg_data, h_pg_data, bl_sz, cudaMemcpyHostToDevice);
+  err = cudaMemcpy (d_pg_data, h_pg_data, F_CPG_SIZE_BYTES, cudaMemcpyHostToDevice);
   CUDA_CHK_ERR(err);
 
 
@@ -70,35 +67,46 @@ int main() {
   cuda_gf_init CUDA_VEC ();
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
+#ifndef ERR_SEEN
   // The block and grid size cannot be more than 1024
   cuda_grid.x  = 2*T; 
-  cuda_grid.y  = 1; 
+  cuda_grid.y  = F_NO_OF_SC;
   cuda_grid.z  = 1;
   cuda_block.x = RS_N;
   cuda_block.y = 1; 
   cuda_block.z = 1;
-  cuda_rs_syndrome CUDA_VEC (d_pg_data,d_pg_syndrome);
+  cuda_rs_fft CUDA_VEC (d_pg_data,d_pg_rs_rx_fft);
+  err = cudaGetLastError();CUDA_CHK_ERR(err);
+
+#else
+  // Run FFT on the complete spectrum
+  cuda_grid.x  = RS_N;
+  cuda_grid.y  = F_NO_OF_SC; 
+  cuda_grid.z  = 1;
+  cuda_block.x = RS_N;
+  cuda_block.y = 1; 
+  cuda_block.z = 1;
+  cuda_rs_fft CUDA_VEC (d_pg_data,d_pg_rs_rx_fft);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
   // Call berlekamp massey algorithm
   cuda_grid.x  = 1;cuda_grid.y  = 1;cuda_grid.z  = 1;
-  cuda_block.x = 1;
-  cuda_block.y = 1;
-  cuda_block.z = 1;
-  cuda_rs_keyeq CUDA_VEC (d_pg_syndrome,d_pg_keyeq);
+  cuda_block.x = 1;cuda_block.y = 1;cuda_block.z = 1;
+  cuda_rs_keyeq CUDA_VEC (d_pg_rs_rx_fft,d_pg_keyeq);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
 
-  cuda_grid.x  = F_NBLOCKS;
-  cuda_grid.y  = F_NBLOCKS;
+  cuda_grid.x  = F_NO_OF_SC;
+  cuda_grid.y  = F_NO_OF_SC;
   cuda_grid.z  = 1;
-  cuda_block.x = SZ_OF_DTYPE;
+  cuda_block.x = 4;
   cuda_block.y = 1;
   cuda_block.z = 1;
   cuda_rs_csearch CUDA_VEC (d_pg_keyeq,d_pg_data,d_pg_corr_data);
   err = cudaGetLastError();CUDA_CHK_ERR(err);
+#endif
 
   /* Once the computation is done, move the corrected data back to the host */
-  err = cudaMemcpy (h_pg_corr_data, d_pg_corr_data, bl_sz, cudaMemcpyDeviceToHost);
+  err = cudaMemcpy (h_pg_corr_data, d_pg_corr_data, F_CPG_SIZE_BYTES, cudaMemcpyDeviceToHost);
   CUDA_CHK_ERR(err);
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -111,7 +119,10 @@ int main() {
   for(i=0;i<gl_sz;i++){
 	 printf("GF element %03d is %04x \n",i,h_pg_corr_data[i]);
   }
+
 */
+  printf ("Galois field is %3d error is %3d\n",M,T);
+   
   /* Free up the cuda memory */
   cudaFree(d_pg_data);cudaFree(d_pg_syndrome);cudaFree(d_pg_corr_data);
   free(h_pg_data);free(h_pg_corr_data);
@@ -138,10 +149,10 @@ GFN_DEF void cuda_gf_init(){
 
 
 
-/* syndrome generator */
-GFN_DEF void cuda_rs_syndrome (DTYPEP pg_data, UINTP syndrome){
+/* FFT in the given finite field */
+GFN_DEF void cuda_rs_fft (DTYPEP t_data, UINTP f_data){
 
-  __shared__ int l_syndrome[RS_N];
+  __shared__ int l_f_data[RS_N];
 
   // The position of the 32 bit is the thread id   
   DTYPE bl_dw_pos  = threadIdx.x;
@@ -149,18 +160,16 @@ GFN_DEF void cuda_rs_syndrome (DTYPEP pg_data, UINTP syndrome){
   DTYPE synd_i     = blockIdx.x;
   DTYPE block_no   = blockIdx.y;
 
-  DTYPE dw_pos        = bl_dw_pos; 
-  DTYPE dw_data       = pg_data[dw_pos];
-  DTYPE byte          = dw_data>>(byte_pos*8) & 0xff; 
+  DTYPE elem          = bl_dw_pos; 
+  DTYPE vec_elem      = t_data[block_no*RS_N+elem];
   DTYPE synd_calc_pos = synd_i + 0; 
 
-  DTYPE m       = gb_gf_log_table[byte];
-  DTYPE pow_i  = ((synd_i * bl_dw_pos)+m) % ((1<<M)-1); 
+  DTYPE m       = gb_gf_log_table[vec_elem];
+  DTYPE pow_i  = ((synd_i * elem)+m) % ((1<<M)-1); 
 
   int log_table = gb_gf_ext[(pow_i)];
-  // atomicXor(&l_syndrome[synd_calc_pos],log_table);
 
-  l_syndrome[bl_dw_pos] = log_table; // Assign the multiplied value to the syndrome
+  l_f_data[elem] = log_table; // Assign the multiplied value to the syndrome
   __syncthreads(); // This will make sure the array is synchronized 
   
 
@@ -169,14 +178,12 @@ GFN_DEF void cuda_rs_syndrome (DTYPEP pg_data, UINTP syndrome){
 
   while (index != 0) {
     // Galois field addition is XOR
-    if (bl_dw_pos < index) { l_syndrome[bl_dw_pos] ^= l_syndrome[bl_dw_pos+index];}
-
-    __syncthreads(); // This will make sure the values are synchronized 
+    if (elem < index) { l_f_data[elem] ^= l_f_data[elem+index];}
     index = index/2;
+    __syncthreads(); // This will make sure the values are synchronized 
   }
   
-
-  syndrome[synd_i] = l_syndrome[synd_i];
+  f_data[block_no*RS_N+synd_i] = l_f_data[synd_i];
 }
 
 /* Key equation solver */

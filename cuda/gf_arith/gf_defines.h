@@ -1,4 +1,4 @@
-/* FOR 512 * 8 K bits the galois extension is 13 */
+/* FOR 512 * 8 K bits the galois extension is 8 */
 #ifndef GALOIS_FEILD_EXT
   #define GALOIS_FIELD_EXT 8 
 #endif

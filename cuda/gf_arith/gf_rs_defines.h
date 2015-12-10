@@ -2,22 +2,29 @@
 #ifndef NO_OF_ERRORS
   #define NO_OF_ERRORS 8 
 #endif
+
 #define T NO_OF_ERRORS
 
 /* No of parity bits for the coder */
-#define PARITY_MT   (T*M)
-#define PAD_BITS  ((ceil(PARITY_MT/SZ_OF_UINT)*SZ_OF_UINT)-PARITY_MT)
+#define PARITY_MT 2*M*T
 
 /* No of RS code blocks */
-#define RS_N 256
+#ifndef RS_N
+  #define RS_N 512
+#endif
+#define RS_K RS_N/2
 
-/* Size of the block in bits */
-#ifndef F_SEC_SIZE
-  #define F_SEC_SIZE 512
-#endif 
-#define DATA_SIZE (F_SEC_SIZE*8)
+/* Flash memory constants */
+#ifndef F_PG_SIZE_BYTES
+  #define F_PG_SIZE_BYTES  (2*1024)
+#endif
 
-// Align to a byte boundary
-#define F_BLOCK_SIZE (DATA_SIZE+PARITY_MT+PAD_BITS)
-#define F_NBLOCKS    (2048/F_SEC_SIZE) 
+#define F_PG_SIZE_RS_B   (F_PG_SIZE_BYTES*8/M)
+#define F_NO_OF_SC       (F_PG_SIZE_RS_B/RS_K)
 
+#ifndef F_SAREA_BYTES
+  #define F_SAREA_BYTES    F_PG_SIZE_BYTES
+#endif
+
+#define F_CPG_SIZE_BYTES (F_SAREA_BYTES+F_PG_SIZE_BYTES)
+#define F_CPG_SIZE_RS_B  (F_CPG_SIZE_BYTES*8/M)
