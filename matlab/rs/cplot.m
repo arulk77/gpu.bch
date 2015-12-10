@@ -541,7 +541,7 @@ saveas(f,'Bit_error_fft_time.jpg','jpg');
 f=figure(3);
 bar(c512');
 grid on;
-legend('Memory copy','Syndrome calc time ','iBMA calc time','Chein Search calc time','Location','northwest');
+legend('Memory copy','FFT calc time ','iBMA calc time','Errorpoly calc time','Location','northwest');
 xlabel('Bit Error','fontweight','bold','fontsize',12);
 ylabel('BCH computation time divided (\mus)','fontweight','bold','fontsize',12);
 title('Bit Error vs. BCH computation time divided (\mus)','fontweight','bold','fontsize',14);
