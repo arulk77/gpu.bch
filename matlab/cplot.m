@@ -400,7 +400,7 @@ legend('128 Byte Block','256 Byte Block','512 Byte block','Reference 100 \mus','
 grid on;
 xlabel('Bit Error','fontweight','bold','fontsize',12);
 ylabel('BCH cmputation time on GPU (\mus)','fontweight','bold','fontsize',12);
-title('Bit Error vs Computation Time (\mus)','fontweight','bold','fontsize',14);
+title('Bit Error vs. Computation Time on GPU (\mus)','fontweight','bold','fontsize',14);
 axis([0,max+1,0,1100]);
 saveas(f,'Bit_error_comp_time.jpg','jpg');
 
@@ -411,7 +411,7 @@ legend('128 Byte Block','256 Byte Block','512 Byte block','Reference 100 \mus','
 grid on;
 xlabel('Bit Error','fontweight','bold','fontsize',12);
 ylabel('BCH syndrome computation time on GPU (\mus)','fontweight','bold','fontsize',12);
-title('Bit Error vs Syndrome computation Time (\mus)','fontweight','bold','fontsize',14);
+title('Bit Error vs. Syndrome computation Time (\mus)','fontweight','bold','fontsize',14);
 axis([0,max+1,0,125]);
 saveas(f,'Bit_error_synd_time.jpg','jpg');
 
@@ -421,7 +421,7 @@ bar(c512');
 grid on;
 legend('Memory copy','Syndrome calc time ','iBMA calc time','Chein Search calc time','Location','northwest');
 xlabel('Bit Error','fontweight','bold','fontsize',12);
-ylabel('BCH computation time for BCH split (\mus)','fontweight','bold','fontsize',12);
-title('Bit Error vs BCH computation time split (\mus)','fontweight','bold','fontsize',14);
+ylabel('BCH computation time divided (\mus)','fontweight','bold','fontsize',12);
+title('Bit Error vs. BCH computation time divided (\mus)','fontweight','bold','fontsize',14);
 axis([0,max+1,0,600]);
 saveas(f,'Bit_error_bar_gpu_time.jpg','jpg');
