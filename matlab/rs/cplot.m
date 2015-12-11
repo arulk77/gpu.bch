@@ -522,7 +522,7 @@ legend('128 RS code','256 RS code','512 RS code','1024 RS dode','Reference 100 \
 grid on;
 xlabel('Bit Error','fontweight','bold','fontsize',12);
 ylabel('BCH cmputation time on GPU (\mus)','fontweight','bold','fontsize',12);
-title('Bit Error vs. Computation Time on GPU (\mus)','fontweight','bold','fontsize',14);
+title('Computation Time on GPU (\mus) vs. Bit Error','fontweight','bold','fontsize',14);
 axis([0,max+1,0,3500]);
 saveas(f,'Bit_error_comp_time.jpg','jpg');
 
@@ -533,7 +533,7 @@ legend('128 RS code','256 RS code','512 RS code','1024 RS code','Reference 100 \
 grid on;
 xlabel('Bit Error','fontweight','bold','fontsize',12);
 ylabel('BCH fft computation time on GPU (\mus)','fontweight','bold','fontsize',12);
-title('Bit Error vs. Syndrome computation Time (\mus)','fontweight','bold','fontsize',14);
+title('Syndrome computation Time (\mus) vs. Bit Error','fontweight','bold','fontsize',14);
 axis([0,max+1,0,550]);
 saveas(f,'Bit_error_fft_time.jpg','jpg');
 
@@ -544,6 +544,6 @@ grid on;
 legend('Memory copy','FFT calc time ','iBMA calc time','Errorpoly calc time','Location','northwest');
 xlabel('Bit Error','fontweight','bold','fontsize',12);
 ylabel('BCH computation time divided (\mus)','fontweight','bold','fontsize',12);
-title('Bit Error vs. BCH computation time divided (\mus)','fontweight','bold','fontsize',14);
+title('BCH computation time divided (\mus) vs. Bit Error','fontweight','bold','fontsize',14);
 axis([0,max+1,0,1250]);
 saveas(f,'Bit_error_bar_gpu_time.jpg','jpg');
