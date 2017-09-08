@@ -1,7 +1,10 @@
+ARCH:=sm_53
+## ARCH:=sm_61
+
 all: sample.out
 
 %.out:%.cu 
-	nvcc -arch=sm_53 -rdc=true $< -o $@
+	nvcc -arch=$(ARCH) -rdc=true $< -o $@
 
 run: sample.out 
 	nvprof ./$<
