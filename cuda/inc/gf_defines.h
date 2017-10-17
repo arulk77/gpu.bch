@@ -1,7 +1,8 @@
 /* FOR 512 * 8 K bits the galois extension is 8 */
 #ifndef GALOIS_FEILD_EXT
-  #define GALOIS_FIELD_EXT 8 
+  #define GALOIS_FIELD_EXT 13 
 #endif
+
 #define M GALOIS_FIELD_EXT
 
 /* Definition for the primite polynomials */
