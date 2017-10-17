@@ -6,11 +6,14 @@
 #define M GALOIS_FIELD_EXT
 
 /* Definition for the primite polynomials */
+#if M == 13
 #define PRIMITIVE_POLY 0b10_0000_0001_1011
 #define P_XOR 0x1b // 0b0_0000_0001_1011
 #define ALPHA 0x02 // 0b0_0000_0000_0010 // Alpha, which is the primitive 
 #define ZERO  0x00 // 0b0_0000_0000_0000 // Zero
 #define ONE   0x01 // 0b0_0000_0000_0001 // Identity element
+#elif M == 4
+#endif
 
 /*+++++++++++++++ Constants on the device ++++++++++++++++++++++++*/
 CS_DEF DTYPE CS_GF_WND      = ((1<<M)-1);

@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
+
+
 #define N 10
 
 // kernel routine
@@ -14,7 +16,7 @@ __global__ void sub_kernel(int* d_vec, int n) {
 
 __global__ void kernel(int* d_vec, int n) {
   if(threadIdx.x < n) {
-    sub_kernel<<<1,5>>>(d_vec,n);
+    sub_kernel<<<1,1024>>>(d_vec,n);
   }
   cudaDeviceSynchronize();
 }
@@ -38,7 +40,7 @@ int main (int argc, char** argv) {
   // Allocate memory 
   cudaMalloc(&d_vec, N*sizeof(int));
   cudaMemcpy(d_vec,vec_in,N*sizeof(int),cudaMemcpyHostToDevice);
-  kernel<<<512,8>>>(d_vec,N);
+  kernel<<<32,1024>>>(d_vec,N);
   cudaMemcpy(vec_out,d_vec,N*sizeof(int),cudaMemcpyDeviceToHost); 
 
   myprint(&vec_out[0],N);
