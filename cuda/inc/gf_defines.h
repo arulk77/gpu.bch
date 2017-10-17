@@ -7,13 +7,25 @@
 
 /* Definition for the primite polynomials */
 #if M == 13
-#define PRIMITIVE_POLY 0b10_0000_0001_1011
-#define P_XOR 0x1b // 0b0_0000_0001_1011
+  #define PRIMITIVE_POLY 0b10_0000_0001_1011
+  #define P_XOR           0b0_0000_0001_1011_
+  #define MIN_POLY1      0b10_0000_0001_1011
+  #define MIN_POLY3      0b10_0000_0110_0001
+  #define MIN_POLY5      0b10_1001_1001_0011
+  #define MIN_POLY7      0b10_0111_0100_1111
+#elif M == 4
+  #define PRIMITIVE_POLY 0b1_0011 
+  #define P_XOR            0b0011 
+  #define MIN_POLY1      0b1_0011 
+  #define MIN_POLY3      0b1_1111 
+  #define MIN_POLY5      0b0_0111 
+  #define MIN_POLY7      0b1_1001 
+#endif
+
+// This is comman for all extended GF
 #define ALPHA 0x02 // 0b0_0000_0000_0010 // Alpha, which is the primitive 
 #define ZERO  0x00 // 0b0_0000_0000_0000 // Zero
 #define ONE   0x01 // 0b0_0000_0000_0001 // Identity element
-#elif M == 4
-#endif
 
 /*+++++++++++++++ Constants on the device ++++++++++++++++++++++++*/
 CS_DEF DTYPE CS_GF_WND      = ((1<<M)-1);
