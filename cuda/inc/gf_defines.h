@@ -1,26 +1,35 @@
 /* FOR 512 * 8 K bits the galois extension is 8 */
-#ifndef GALOIS_FEILD_EXT
-  #define GALOIS_FIELD_EXT 13 
-#endif
-
-#define M GALOIS_FIELD_EXT
-
 /* Definition for the primite polynomials */
-#if M == 13
-  #define PRIMITIVE_POLY 0b10_0000_0001_1011
-  #define P_XOR           0b0_0000_0001_1011_
-  #define MIN_POLY1      0b10_0000_0001_1011
-  #define MIN_POLY3      0b10_0000_0110_0001
-  #define MIN_POLY5      0b10_1001_1001_0011
-  #define MIN_POLY7      0b10_0111_0100_1111
-#elif M == 4
-  #define PRIMITIVE_POLY 0b1_0011 
-  #define P_XOR            0b0011 
-  #define MIN_POLY1      0b1_0011 
-  #define MIN_POLY3      0b1_1111 
-  #define MIN_POLY5      0b0_0111 
-  #define MIN_POLY7      0b1_1001 
+#ifdef M_13
+  #define M 13
+  #define GF_MASK        0b01111111111111 
+  #define PRIMITIVE_POLY 0b10000000011011
+  #define P_XOR          0b00000000011011
+  #define MIN_POLY1      0b10000000011011
+  #define MIN_POLY3      0b10000001100001
+  #define MIN_POLY5      0b10100110010011
+  #define MIN_POLY7      0b10011101001111
 #endif
+
+// If no field is defined then 
+#ifndef M
+  #define M_4
+#endif
+
+// Default to extended field of 4
+#ifdef M_4
+  #define M 4
+  #define GF_MASK        0b01111
+  #define PRIMITIVE_POLY 0b10011
+  #define P_XOR          0b00011
+  #define MIN_POLY1      0b10011
+  #define MIN_POLY3      0b11111
+  #define MIN_POLY5      0b00111
+  #define MIN_POLY7      0b11001
+#endif
+
+#define GALOIS_FIELD_EXT M 
+
 
 // This is comman for all extended GF
 #define ALPHA 0x02 // 0b0_0000_0000_0010 // Alpha, which is the primitive 
