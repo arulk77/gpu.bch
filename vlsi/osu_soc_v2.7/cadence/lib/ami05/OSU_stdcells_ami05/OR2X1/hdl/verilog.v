@@ -1,0 +1,1 @@
+/import/cad2/osu_stdcells/lib/ami05/lib/osu05_stdcells.v.se

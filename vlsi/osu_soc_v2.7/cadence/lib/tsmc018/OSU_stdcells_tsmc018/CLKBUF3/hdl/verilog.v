@@ -1,0 +1,1 @@
+/import/cad2/osu_stdcells/lib/tsmc018/lib/osu018_stdcells.v.se
