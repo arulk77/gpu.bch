@@ -1,0 +1,27 @@
+; Strem In Map for importing GDS layout into Synopsys (Milkyway)
+; Format is MilkywayLayer[:MilkywayDataType] GDSIILayer[:GDSIIDataType]
+; Example:
+; 44 36:3 ; converts GDSII data of type 3 on layer #36 to
+;	    MilkywayLayer #44
+;
+1 42  ; nwell
+2 103 ; nActive
+3 113 ; pActive
+4 46  ; poly
+5 25  ; cc
+5 47  ; cc
+5 48  ; cc
+6 49  ; metal1
+7 50  ; via
+8 51  ; metal2
+9 61  ; via2
+10 62 ; metal3
+11 30 ; via3
+12 31 ; metal4
+13 32 ; via4
+14 33 ; metal5
+15 63 ; text
+15 109; text
+16 43 ; active
+17 45 ; nselect
+18 44 ; pselect
