@@ -34,13 +34,12 @@
 ################################################################################
 
 # Location of the CUDA Toolkit
-##CUDA_PATH ?= /applications/cuda/6.0/linux
-CUDA_PATH ?= /usr/local/cuda
+CUDA_PATH ?= "/usr/local/cuda"
 
 OSUPPER = $(shell uname -s 2>/dev/null | tr "[:lower:]" "[:upper:]")
 OSLOWER = $(shell uname -s 2>/dev/null | tr "[:upper:]" "[:lower:]")
 
-OS_SIZE = $(shell uname -m | sed -e "s/i.86/32/" -e "s/x86_64/64/" -e "s/armv7l/32/" -e "s/aarch64/64/")
+OS_SIZE = $(shell uname -m | sed -e "s/i.86/32/" -e "s/x86_64/64/" -e "s/armv7l/32/")
 OS_ARCH = $(shell uname -m | sed -e "s/i386/i686/")
 
 DARWIN = $(strip $(findstring DARWIN, $(OSUPPER)))
@@ -146,16 +145,9 @@ GENCODE_SM30    := -gencode arch=compute_30,code=sm_30
 GENCODE_SM32    := -gencode arch=compute_32,code=sm_32
 GENCODE_SM35    := -gencode arch=compute_35,code=sm_35
 GENCODE_SM50    := -gencode arch=compute_50,code=sm_50
-GENCODE_SM53    := -gencode arch=compute_53,code=sm_53
 GENCODE_SMXX    := -gencode arch=compute_50,code=compute_50
 ## GENCODE_FLAGS   ?= $(GENCODE_SM20) $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM32) $(GENCODE_SM35) $(GENCODE_SM50) $(GENCODE_SMXX)
-
-ifndef JETSON
 GENCODE_FLAGS   ?= $(GENCODE_SM30)
-else
-GENCODE_FLAGS   ?= $(GENCODE_SM53) -rdc=true 
-DEFINE_FLAGS    := $(DEFINE_FLAGS) -DNOERR=1
-endif
 
 DEFINE_FLGAS   := 
 SZ := 512
@@ -179,7 +171,7 @@ $(FILE): $(FILE).o
 	cp $@ ../../bin/$(OS_ARCH)/$(OSLOWER)/$(TARGET)$(if $(abi),/$(abi))
 
 run: build
-	nvprof -u us -s --csv ./$(FILE) 2>&1 | tee profile.txt  
+	nvprof -s --csv ./$(FILE) >& profile.txt
 
 cr:
 	cat profile.txt | grep HtoD | awk -F, '{print " b$(SZ)_h2d($(NO)) = "$$4";";}'>> matdata.m;\

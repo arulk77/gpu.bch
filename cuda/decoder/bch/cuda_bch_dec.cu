@@ -69,38 +69,48 @@ int main() {
 
   cuda_grid  = dim3(1);cuda_block = dim3(1);
   cuda_gf_init CUDA_VEC ();
+  #ifndef NOERR
   err = cudaGetLastError();CUDA_CHK_ERR(err);
+  #endif
 
   // The block and grid size cannot be more than 1024
 
   cuda_grid.x  = F_NBLOCKS;
-  cuda_grid.y  = 2*T;
+  cuda_grid.y  = pg_size_dw/F_NBLOCKS;
   cuda_grid.z  = 1;
-  cuda_block.x = pg_size_dw/F_NBLOCKS;
-  cuda_block.y = SZ_OF_DTYPE;
+  cuda_block.x = (SZ_OF_DTYPE*8);
+  cuda_block.y = 2*T; 
   cuda_block.z = 1;
   cuda_bch_syndrome CUDA_VEC (d_pg_data,d_pg_syndrome);
+  #ifndef NOERR
   err = cudaGetLastError();CUDA_CHK_ERR(err);
+  #endif
 
   cuda_grid.x  = 1;cuda_grid.y  = 1;cuda_grid.z  = 1;
   cuda_block.x = F_NBLOCKS;
   cuda_block.y = 1;
   cuda_block.z = 1;
   cuda_bch_keyeq CUDA_VEC (d_pg_syndrome,d_pg_keyeq);
+  #ifndef NOERR
   err = cudaGetLastError();CUDA_CHK_ERR(err);
+  #endif
 
   cuda_grid.x  = pg_size_dw/F_NBLOCKS;
   cuda_grid.y  = F_NBLOCKS;
   cuda_grid.z  = 1;
-  cuda_block.x = SZ_OF_DTYPE;
+  cuda_block.x = (SZ_OF_DTYPE*8);
   cuda_block.y = 1;
   cuda_block.z = 1;
   cuda_bch_csearch CUDA_VEC (d_pg_keyeq,d_pg_data,d_pg_corr_data);
+  #ifndef NOERR
   err = cudaGetLastError();CUDA_CHK_ERR(err);
+  #endif
 
   /* Once the computation is done, move the corrected data back to the host */
   err = cudaMemcpy (h_pg_corr_data, d_pg_syndrome, pg_syn_sz, cudaMemcpyDeviceToHost);
+  #ifndef NOERR
   CUDA_CHK_ERR(err);
+  #endif
 
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++
   DTYPEP h_dbg = (DTYPEP) malloc ((1<<M)*4);
@@ -161,7 +171,7 @@ GFN_DEF void cuda_bch_syndrome (DTYPEP pg_data, UINTP syndrome){
   syndrome[synd_calc_pos] = 0;
   __syncthreads();
 
-  pow_i = ((synd_i * (bl_dw_pos * SZ_OF_DTYPE))+bit_pos) % ((1<<M)-1); 
+  pow_i = ((synd_i * (bl_dw_pos * SZ_OF_DTYPE*8))+bit_pos) % ((1<<M)-1); 
 
   if(dw_data_pos != 0) { atomicXor(&syndrome[synd_calc_pos],gb_gf_log_table[pow_i]);}
 }
@@ -197,14 +207,14 @@ GFN_DEF void cuda_bch_keyeq (UINTP syndrome, DTYPEP keyeq) {
   for(r=1;r<T;r++) {
 	 dr = 0;
 	 for(i=0;i<T;i++) {
-		dr = dr ^ gf_mul(sigma[r-1][i],syndrome[block_pos+(2*r-i)]);
+		dr = dr ^ gfn_gf_mul(sigma[r-1][i],syndrome[block_pos+(2*r-i)]);
 	 }
 	 dp_cons = dr;
     for(i=0;i<=T;i++){
-		beta_mul[i] = gf_mul(beta[r][i],dp_cons);
+		beta_mul[i] = gfn_gf_mul(beta[r][i],dp_cons);
 	 }
 	 for(i=0;i<=T;i++){
-		sigma[r][i] = beta_mul[i] ^ gf_mul(sigma[r-1][i],dp);
+		sigma[r][i] = beta_mul[i] ^ gfn_gf_mul(sigma[r-1][i],dp);
 	 }
 	 bsel = (dr != 0 && r >= lr[r]) ? 1 : 0 ;
     for(i=0;i<=T;i++){
@@ -238,10 +248,10 @@ GFN_DEF void cuda_bch_csearch (DTYPEP keyeq,DTYPEP pg_data,DTYPEP pg_corr_data) 
   // Find if the poistion has a solvable error 
 
   for (i=0;i<=T;i++) {
-    alpha_pos = (bit_pos+(bl_pos*SZ_OF_DTYPE));
+    alpha_pos = (bit_pos+(bl_pos*SZ_OF_DTYPE*8));
     alpha_pos = (alpha_pos*i)%CS_GF_WND;
 	  alpha_val = gb_gf_log_table[alpha_pos];
-	  sum = sum ^ gf_mul(keyeq[key_pos+i],alpha_val);
+	  sum = sum ^ gfn_gf_mul(keyeq[key_pos+i],alpha_val);
   }
 
   err_det = (sum != 0) ? 0 : 1;
