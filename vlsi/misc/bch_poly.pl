@@ -4,7 +4,6 @@
 ## Desc : Perl module to analyze the bch encoding and decoding
 ##        mechanism 
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-use Switch;
 use strict;
 
 my $x;
@@ -19,38 +18,51 @@ my @gen_poly;
 my $var_x;
 
 if($#argv+1 == 0) {help();}
+my $i;
 
-## While Loop to read the arguments from the command loop    
-while ($#argv+1 > 0) {
-  $x = pop(@argv);
-  switch ($x) {
-
-    case "-h" 
-      { help(); exit; 
-      }
-
-    case "-e" 
-      { $element_no = pop @argv; 
-      }
-
-    case "-t" 
-      { 
-         $no_of_errors = pop @argv;
-	 if($#binary_data+1==0) { print_gen_poly();}
-	 find_lcm();
-      } 
-
-    case "-f" 
-      { 
-        $file_name = pop @argv;  
-        print_gen_poly();
-      }
-
-    else 
-      { help(); exit; 
-      }
-  }
+for ($i = 0; $i <= $#ARGV; $i++) {
+   if    ($ARGV[$i] =~ /^-(hel|H)/)           { help(); exit}
+   elsif ($ARGV[$i] =~ /^-e/)                 { $element_no = $ARGV[++$i];}
+   elsif ($ARGV[$i] =~ /^-t/)                 { $no_of_errors = $ARGV[++$i];}
+   elsif ($ARGV[$i] eq "-f")                  { $file_name = $ARGV[++$i]; }
+   else  {die "Cannot decode option $ARGV[$i]"; }
 }
+
+## Print the generator polynomial
+print_gen_poly();
+find_lcm();
+
+## ## While Loop to read the arguments from the command loop    
+## while ($#argv+1 > 0) {
+##   $x = pop(@argv);
+##   switch ($x) {
+## 
+##     case "-h" 
+##       { help(); exit; 
+##       }
+## 
+##     case "-e" 
+##       { $element_no = pop @argv; 
+##       }
+## 
+##     case "-t" 
+##       { 
+##          $no_of_errors = pop @argv;
+## 	 if($#binary_data+1==0) { print_gen_poly();}
+## 	 find_lcm();
+##       } 
+## 
+##     case "-f" 
+##       { 
+##         $file_name = pop @argv;  
+##         print_gen_poly();
+##       }
+## 
+##     else 
+##       { help(); exit; 
+##       }
+##   }
+## }
 
 
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -75,7 +87,7 @@ sub find_lcm () {
   for($i=0;$i<=$#error_poly;$i++) {
     for($j=$i+1;$j<=$#error_poly;$j++) {
       if($error_poly[$i] == $error_poly[$j]) { 
-	 $error_poly[$j] = 0;      
+	     $error_poly[$j] = 0;      
       }
     }
   }

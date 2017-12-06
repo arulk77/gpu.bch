@@ -3,7 +3,6 @@
 ## File : bch_dec.pl
 ## Desc : Perl module to decode a given syndrome 
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-use Switch;
 use strict;
 
 my $x;
@@ -25,40 +24,19 @@ my @beta;
 my @lr;
 
 if($#argv+1 == 0) {help();}
+my $i;
 
-## While Loop to read the arguments from the command loop    
-while ($#argv+1 > 0) {
-  $x = pop(@argv);
-  switch ($x) {
+for ($i = 0; $i <= $#ARGV; $i++) {
+   if    ($ARGV[$i] =~ /^-(hel|H)/)  { help(); exit}
+   elsif ($ARGV[$i] =~ /^-m/)        { $gf_ext = $ARGV[++$i];}
+   elsif ($ARGV[$i] =~ /^-dbg/)      { $debug = 1;}
+   elsif ($ARGV[$i] =~ /^-dec/)      { decode_non_inv(); find_roots();} 
+   else  {die "Cannot decode option $ARGV[$i]"; }
+}
 
-    case "-h" 
-      { help(); exit; 
-      }
-
-    case "-m" 
-      { $gf_ext = pop @argv;
-        if($gf_ext > 24) {
-          print "This extension field is out of range for the programe, please try value less than 24"; exit;
-        }
-      }
-    case "-dbg" 
-      {
-        $debug = 1;
-      }
-   
-    case "-dec"
-    {
-        create_galois_field();
-	## decode_inv();
-	decode_non_inv();
-	find_roots();
-    }
-
-
-    else 
-      { exit; 
-      }
-  }
+## Exit 
+if($gf_ext > 24) {
+  print "This extension field is out of range for the programe, please try value less than 24"; exit;
 }
 
 if($debug) {
@@ -422,7 +400,7 @@ sub print_all_value() {
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 sub help() {
    print <<HELP_PRINT  
-     bch_gen.pl [-h] [-m] [-pgf] [-dbg] [-poly] 
+     bch_dec.pl [-h] [-m] [-pgf] [-dbg] [-poly] 
      -h 
          print the help menu 
      -m <extension field>
@@ -503,55 +481,52 @@ sub create_galois_field() {
 ## a given extension field 
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 sub primitive_element() {
-  switch ($gf_ext) {
+    if ($gf_ext == 2)     { $prim_poly = 0b111;                             } # X^2 + X + 1 
 
-    case 2  { $prim_poly = 0b111;                             } # X^2 + X + 1 
+    elsif ($gf_ext == 3)  { $prim_poly = 0b1011;                            } # X^3 + X + 1 
 
-    case 3  { $prim_poly = 0b1011;                            } # X^3 + X + 1 
+    elsif ($gf_ext == 4)  { $prim_poly = 0b1_0011;                          } # X^4 + X + 1 
 
-    case 4  { $prim_poly = 0b1_0011;                          } # X^4 + X + 1 
+    elsif ($gf_ext == 5)  { $prim_poly = 0b10_0101;                         } # X^5 + X^2 + 1 
 
-    case 5  { $prim_poly = 0b10_0101;                         } # X^5 + X^2 + 1 
+    elsif ($gf_ext == 6)  { $prim_poly = 0b100_0011;                        } # X^6 + X + 1 
 
-    case 6  { $prim_poly = 0b100_0011;                        } # X^6 + X + 1 
+    elsif ($gf_ext == 7)  { $prim_poly = 0b1000_1001;                       } # X^7 + X^3 + 1 
 
-    case 7  { $prim_poly = 0b1000_1001;                       } # X^7 + X^3 + 1 
+    elsif ($gf_ext == 8)  { $prim_poly = 0b1_0001_1101;                     } # X^8 + X4 + X3 + X^2 + 1
 
-    case 8  { $prim_poly = 0b1_0001_1101;                     } # X^8 + X4 + X3 + X^2 + 1
+    elsif ($gf_ext == 9)  { $prim_poly = 0b10_0001_0001;                    } # X^9 + X^4 + 1
 
-    case 9  { $prim_poly = 0b10_0001_0001;                    } # X^9 + X^4 + 1
+    elsif ($gf_ext == 10) { $prim_poly = 0b100_0000_1001;                   } # X^10 + X^3 + 1
 
-    case 10 { $prim_poly = 0b100_0000_1001;                   } # X^10 + X^3 + 1
+    elsif ($gf_ext == 11) { $prim_poly = 0b1000_0000_0101;                  } # X^11 + X^2 + 1
 
-    case 11 { $prim_poly = 0b1000_0000_0101;                  } # X^11 + X^2 + 1
+    elsif ($gf_ext == 12) { $prim_poly = 0b1_0000_0101_0011;                } # X^12 + X^6 + X^4 + X + 1 
 
-    case 12 { $prim_poly = 0b1_0000_0101_0011;                } # X^12 + X^6 + X^4 + X + 1 
+    elsif ($gf_ext == 13) { $prim_poly = 0b10_0000_0001_1011;               } # X^13 + X^4 + X^3 + X + 1 
 
-    case 13 { $prim_poly = 0b10_0000_0001_1011;               } # X^13 + X^4 + X^3 + X + 1 
+    elsif ($gf_ext == 14) { $prim_poly = 0b100_0100_0100_0011;              } # X^14 + X^10 + X^6 + X + 1 
 
-    case 14 { $prim_poly = 0b100_0100_0100_0011;              } # X^14 + X^10 + X^6 + X + 1 
+    elsif ($gf_ext == 15) { $prim_poly = 0b1000_0000_0000_0011;             } # X^15 + X + 1 
 
-    case 15 { $prim_poly = 0b1000_0000_0000_0011;             } # X^15 + X + 1 
+    elsif ($gf_ext == 16) { $prim_poly = 0b1_0001_0000_0000_1011;           } # X^16 + X^12 + X^3 + X + 1 
 
-    case 16 { $prim_poly = 0b1_0001_0000_0000_1011;           } # X^16 + X^12 + X^3 + X + 1 
+    elsif ($gf_ext == 17) { $prim_poly = 0b10_0000_0000_0000_1001;          } # X^17 + X^3 + 1 
 
-    case 17 { $prim_poly = 0b10_0000_0000_0000_1001;          } # X^17 + X^3 + 1 
+    elsif ($gf_ext == 18) { $prim_poly = 0b100_0000_0000_1000_0001;         } # X^18 + X^7 + 1 
 
-    case 18 { $prim_poly = 0b100_0000_0000_1000_0001;         } # X^18 + X^7 + 1 
+    elsif ($gf_ext == 19) { $prim_poly = 0b1000_0000_0000_0010_0111;        } # X^19 + X^5 + X^2 + X + 1 
 
-    case 19 { $prim_poly = 0b1000_0000_0000_0010_0111;        } # X^19 + X^5 + X^2 + X + 1 
+    elsif ($gf_ext == 20) { $prim_poly = 0b1_0000_0000_0000_0000_1001;      } # X^20 + X^3 + 1 
 
-    case 20 { $prim_poly = 0b1_0000_0000_0000_0000_1001;      } # X^20 + X^3 + 1 
+    elsif ($gf_ext == 21) { $prim_poly = 0b10_0000_0000_0000_0000_0101;     } # X^21 + X^2 + 1 
 
-    case 21 { $prim_poly = 0b10_0000_0000_0000_0000_0101;     } # X^21 + X^2 + 1 
+    elsif ($gf_ext == 22) { $prim_poly = 0b100_0000_0000_0000_0000_0011;    } # X^22 + X + 1 
 
-    case 22 { $prim_poly = 0b100_0000_0000_0000_0000_0011;    } # X^22 + X + 1 
+    elsif ($gf_ext == 23) { $prim_poly = 0b1000_0000_0000_0000_0010_0001;   } # X^23 + X^5 + 1 
 
-    case 23 { $prim_poly = 0b1000_0000_0000_0000_0010_0001;   } # X^23 + X^5 + 1 
-
-    case 24 { $prim_poly = 0b1_0000_0000_0000_0000_1000_0111; } # X^24 + X^7 + X^2 + X + 1 
+    elsif ($gf_ext == 24) { $prim_poly = 0b1_0000_0000_0000_0000_1000_0111; } # X^24 + X^7 + X^2 + X + 1 
 
     else    { $prim_poly = 0b1011;                            } # X^3 + X + 1 
-  }
 }
 
