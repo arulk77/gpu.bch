@@ -34,8 +34,11 @@
 ################################################################################
 
 # Location of the CUDA Toolkit
-##CUDA_PATH ?= /applications/cuda/6.0/linux
+ifndef JETSON
+CUDA_PATH ?= /applications/cuda/7.5/linux
+else
 CUDA_PATH ?= /usr/local/cuda
+endif
 
 OSUPPER = $(shell uname -s 2>/dev/null | tr "[:lower:]" "[:upper:]")
 OSLOWER = $(shell uname -s 2>/dev/null | tr "[:upper:]" "[:lower:]")

@@ -11,6 +11,7 @@
 #include <helper_cuda.h>    
 
 #define GPU_IMP
+
 // Project related includes
 #include <bch_cuda_defines.h>
 #include <gf_defines.h>
@@ -60,6 +61,7 @@ int main() {
   dim3 cuda_thread; // This cannot exceed more than 1024
   dim3 cuda_block;  // This can be more than 1024
 
+  // Initialize the table for the 
   cuda_block  = dim3(1);cuda_thread = dim3(1);
   cuda_gf_init CUDA_VEC ();
   err = cudaGetLastError();CUDA_CHK_ERR(err);
@@ -75,7 +77,7 @@ GFN_DEF void cuda_gf_init(){
   for (i=1;i<(1<<M)-1;i++) {
 	  elem = elem << 1;
     if (elem >= (1<<M)) {
-		  elem = (elem ^ CS_PRIM_POLY[M]) & CS_GF_WND;
+		  elem = (elem ^ DCS_PRIM_POLY[M]) & DCS_GF_WND;
     }
 	 gb_gf_ext[i] = elem;
     gb_gf_log_table[elem] = i;
